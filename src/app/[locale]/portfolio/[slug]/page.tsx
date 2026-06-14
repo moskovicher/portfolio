@@ -112,7 +112,7 @@ export default async function PortfolioDetailPage({
 
             {/* GALLERY - RIGHT (7 cols) */}
             <div className="md:col-span-7">
-              <ProjectGalleryLightbox slug={slug} isAdmin={isAdmin} />
+              <ProjectGalleryLightbox slug={project.cloudinaryTag || slug} isAdmin={isAdmin} imageOrder={project.imageOrder} />
             </div>
           </div>
         </div>

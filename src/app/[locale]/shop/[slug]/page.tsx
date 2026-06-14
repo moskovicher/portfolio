@@ -55,7 +55,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               )}
             </div>
             <div className="md:col-span-7">
-              {product.cloudinaryTag && <ProjectGalleryLightbox slug={product.cloudinaryTag} isAdmin={isAdmin} />}
+              {product.cloudinaryTag && <ProjectGalleryLightbox slug={product.cloudinaryTag} isAdmin={isAdmin} imageOrder={product.imageOrder} />}
             </div>
           </div>
         </div>

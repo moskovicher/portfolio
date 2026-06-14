@@ -79,5 +79,5 @@ export default function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|static|.*\\..*).*)"],
+  matcher: ["/", "/((?!api|_next|static|.*\\..*).*)"],
 };

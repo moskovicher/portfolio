@@ -21,9 +21,11 @@ interface LightboxState {
 export function ProjectGalleryLightbox({
   slug,
   isAdmin,
+  imageOrder,
 }: {
   slug: string;
   isAdmin: boolean;
+  imageOrder?: string;
 }) {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,18 @@ export function ProjectGalleryLightbox({
         const response = await fetch(`/api/gallery/${slug}`);
         const data = await response.json();
 
-        const galleryImages = data.images || [];
+        let galleryImages = data.images || [];
+
+        // Apply the saved manual order (comma-separated publicIds). Items not
+        // in the order list fall to the end, preserving their relative order.
+        if (imageOrder) {
+          const orderList = imageOrder.split(',').map((id: string) => id.trim());
+          galleryImages = [...galleryImages].sort((a: any, b: any) => {
+            const ia = orderList.indexOf(a.publicId);
+            const ib = orderList.indexOf(b.publicId);
+            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+          });
+        }
 
         setImages(galleryImages);
       } catch (err) {
@@ -53,7 +66,7 @@ export function ProjectGalleryLightbox({
     }
 
     fetchImages();
-  }, [slug]);
+  }, [slug, imageOrder]);
 
   const openLightbox = (index: number) => {
     const item = images[index];

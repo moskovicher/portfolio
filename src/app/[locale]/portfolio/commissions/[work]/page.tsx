@@ -60,7 +60,7 @@ export default async function CommissionDetailPage({
             </div>
             <div className="md:col-span-7">
               {commission.cloudinaryTag && (
-                <ProjectGalleryLightbox slug={commission.cloudinaryTag} isAdmin={isAdmin} />
+                <ProjectGalleryLightbox slug={commission.cloudinaryTag} isAdmin={isAdmin} imageOrder={commission.imageOrder} />
               )}
             </div>
           </div>
