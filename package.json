@@ -12,6 +12,7 @@
     "@upstash/redis": "^1.38.0",
     "@vercel/blob": "^2.4.0",
     "cloudinary": "^1.41.3",
+    "dotenv": "^17.4.2",
     "next": "^15.0.0",
     "next-intl": "^3.3.0",
     "react": "^19.0.0-rc.0",
