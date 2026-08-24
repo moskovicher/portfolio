@@ -54,6 +54,14 @@ export interface ProjectMeta {
   cloudinaryTag?: string;
   imageOrder?: string;
   isPublished?: boolean;
+  /** How the project's gallery renders. Defaults to "grid" when unset. */
+  displayMode?: 'grid' | 'carousel';
+  /**
+   * Ordered, comma-separated Cloudinary publicIds to display for this project.
+   * When set, ONLY these images show, in this order (overrides imageOrder).
+   * When empty/unset, every image carrying the tag is shown (ordered by imageOrder).
+   */
+  selectedImages?: string;
 }
 
 // ==========================================

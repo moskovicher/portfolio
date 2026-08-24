@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { applyGallerySelection } from '@/lib/portfolio/gallery-order';
 
 interface GalleryImage {
   url: string;
@@ -22,10 +23,12 @@ export function ProjectGalleryLightbox({
   slug,
   isAdmin,
   imageOrder,
+  selectedImages,
 }: {
   slug: string;
   isAdmin: boolean;
   imageOrder?: string;
+  selectedImages?: string;
 }) {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,18 +47,11 @@ export function ProjectGalleryLightbox({
         const response = await fetch(`/api/gallery/${slug}`);
         const data = await response.json();
 
-        let galleryImages = data.images || [];
-
-        // Apply the saved manual order (comma-separated publicIds). Items not
-        // in the order list fall to the end, preserving their relative order.
-        if (imageOrder) {
-          const orderList = imageOrder.split(',').map((id: string) => id.trim());
-          galleryImages = [...galleryImages].sort((a: any, b: any) => {
-            const ia = orderList.indexOf(a.publicId);
-            const ib = orderList.indexOf(b.publicId);
-            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-          });
-        }
+        const galleryImages = applyGallerySelection(
+          (data.images || []) as GalleryImage[],
+          imageOrder,
+          selectedImages
+        );
 
         setImages(galleryImages);
       } catch (err) {
@@ -66,7 +62,7 @@ export function ProjectGalleryLightbox({
     }
 
     fetchImages();
-  }, [slug, imageOrder]);
+  }, [slug, imageOrder, selectedImages]);
 
   const openLightbox = (index: number) => {
     const item = images[index];

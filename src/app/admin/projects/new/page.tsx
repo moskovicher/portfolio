@@ -30,6 +30,8 @@ export default function AdminProjectsPage() {
     isPublished: false,
     cloudinaryTag: '',
     imageOrder: '',
+    displayMode: 'grid' as 'grid' | 'carousel',
+    selectedImages: '',
   });
 
   const [toolInput, setToolInput] = useState('');
@@ -228,14 +230,31 @@ export default function AdminProjectsPage() {
                 <p className="text-xs text-ink-secondary mt-2">Tag your project gallery files inside Cloudinary using this specific identifier string.</p>
               </div>
 
+              {/* Display mode: grid (default) or carousel */}
+              <label className="flex items-center gap-3 p-2 rounded bg-white cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.displayMode === 'carousel'}
+                  onChange={(e) => setFormData({ ...formData, displayMode: e.target.checked ? 'carousel' : 'grid' })}
+                  className="w-5 h-5"
+                />
+                <span className="text-sm">
+                  <span className="font-medium">Display as carousel</span>
+                  <span className="text-ink-secondary"> — one image at a time (default is a grid gallery)</span>
+                </span>
+              </label>
+
               {/* Interactive Multi-Image sorting canvas drops down when a tag is active */}
               {formData.cloudinaryTag && (
                 <div className="border border-border rounded p-4 bg-white">
-                  <h3 className="text-sm font-medium mb-4">Reorder Gallery Images</h3>
+                  <h3 className="text-sm font-medium mb-4">Reorder & Choose Gallery Images</h3>
                   <ImageOrderer
                     tag={formData.cloudinaryTag}
                     currentOrder={formData.imageOrder}
                     onChange={handleImageOrderChange}
+                    selectable
+                    selected={formData.selectedImages}
+                    onSelectionChange={(s) => setFormData({ ...formData, selectedImages: s })}
                   />
                 </div>
               )}

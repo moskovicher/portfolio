@@ -3,6 +3,7 @@ import type { Locale } from '@/lib/portfolio/types';
 import { getProjects } from '@/lib/blob-data';
 import { requireAdmin } from '@/lib/auth';
 import { ProjectGalleryLightbox } from '@/components/portfolio/ProjectGalleryLightbox';
+import { ArtworkCarousel } from '@/components/gallery/ArtworkCarousel';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: Locale }> }) {
   const { slug, locale } = await params;
@@ -112,7 +113,20 @@ export default async function PortfolioDetailPage({
 
             {/* GALLERY - RIGHT (7 cols) */}
             <div className="md:col-span-7">
-              <ProjectGalleryLightbox slug={project.cloudinaryTag || slug} isAdmin={isAdmin} imageOrder={project.imageOrder} />
+              {project.displayMode === 'carousel' ? (
+                <ArtworkCarousel
+                  tag={project.cloudinaryTag || slug}
+                  imageOrder={project.imageOrder}
+                  selectedImages={project.selectedImages}
+                />
+              ) : (
+                <ProjectGalleryLightbox
+                  slug={project.cloudinaryTag || slug}
+                  isAdmin={isAdmin}
+                  imageOrder={project.imageOrder}
+                  selectedImages={project.selectedImages}
+                />
+              )}
             </div>
           </div>
         </div>

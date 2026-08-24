@@ -93,6 +93,7 @@ export default function AdminDashboard() {
         editBase="/admin/projects"
         viewBase="/en/portfolio"
         newHref="/admin/projects/new"
+        reorderHref="/admin/projects/reorder"
       />
 
       <Section
@@ -143,23 +144,35 @@ function Section({
   editBase,
   viewBase,
   newHref,
+  reorderHref,
 }: {
   title: string;
   items: Item[];
   editBase: string;
   viewBase: string;
   newHref: string;
+  reorderHref?: string;
 }) {
   return (
     <section className="mb-12">
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
         <h2 className="font-display text-2xl">{title}</h2>
-        <Link
-          href={newHref}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-        >
-          + New
-        </Link>
+        <div className="flex items-center gap-2">
+          {reorderHref && items.length > 1 && (
+            <Link
+              href={reorderHref}
+              className="px-4 py-2 border border-border rounded hover:bg-surface text-sm"
+            >
+              ⠿ Reorder
+            </Link>
+          )}
+          <Link
+            href={newHref}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+          >
+            + New
+          </Link>
+        </div>
       </div>
 
       {items.length === 0 ? (

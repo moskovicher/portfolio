@@ -23,6 +23,8 @@ interface ProjectMeta {
   imageOrder?: string;
   mainImageUrl?: string;
   isPublished?: boolean;
+  displayMode?: 'grid' | 'carousel';
+  selectedImages?: string;
 }
 
 export default function EditProjectPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -154,6 +156,20 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
           <input type="text" placeholder="e.g. nili" value={formData.cloudinaryTag || ''} onChange={(e) => setFormData({ ...formData, cloudinaryTag: e.target.value })} className="w-full p-2 border rounded mb-2" />
           <p className="text-xs text-ink-muted mb-3">Tag images AND videos in Cloudinary with this name — both appear in the gallery automatically.</p>
 
+          {/* DISPLAY MODE: grid (default) or carousel */}
+          <label className="flex items-center gap-3 mb-3 p-2 rounded bg-surface cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.displayMode === 'carousel'}
+              onChange={(e) => setFormData({ ...formData, displayMode: e.target.checked ? 'carousel' : 'grid' })}
+              className="w-5 h-5"
+            />
+            <span className="text-sm">
+              <span className="font-medium">Display as carousel</span>
+              <span className="text-ink-muted"> — one image at a time with thumbnails (default is a grid gallery)</span>
+            </span>
+          </label>
+
           {/* Main/preview image picker */}
           {cloudinaryImages.length > 0 && (
             <div className="border-2 border-green-400 bg-green-50 p-3 rounded mb-3">
@@ -172,11 +188,18 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
             </div>
           )}
 
-          {/* Reorder */}
+          {/* Reorder + choose which images to show */}
           {formData.cloudinaryTag && (
             <div className="border border-border rounded p-3 bg-white">
-              <h4 className="text-sm font-medium mb-3">Reorder Gallery Images</h4>
-              <ImageOrderer tag={formData.cloudinaryTag} currentOrder={formData.imageOrder || ''} onChange={(o) => setFormData({ ...formData, imageOrder: o })} />
+              <h4 className="text-sm font-medium mb-3">Reorder & Choose Gallery Images</h4>
+              <ImageOrderer
+                tag={formData.cloudinaryTag}
+                currentOrder={formData.imageOrder || ''}
+                onChange={(o) => setFormData({ ...formData, imageOrder: o })}
+                selectable
+                selected={formData.selectedImages || ''}
+                onSelectionChange={(s) => setFormData({ ...formData, selectedImages: s })}
+              />
             </div>
           )}
         </div>

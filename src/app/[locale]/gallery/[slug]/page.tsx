@@ -1,7 +1,8 @@
 import type { Locale } from "@/lib/portfolio/types";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArtworkCarousel } from "@/components/gallery/ArtworkCarousel";
-import { getArtworks } from "@/lib/blob-data";
+import { getArtworks, getProjects } from "@/lib/blob-data";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,14 @@ export default async function ArtworkPage({
 }) {
   const { locale, slug } = await params;
   const isRtl = locale === "he";
+
+  // Gallery is merged into Work. If this piece has been migrated into a
+  // project, send visitors to the unified Work page. Otherwise keep showing
+  // the artwork here so no link ever breaks.
+  const projects = await getProjects();
+  if (projects.some((p) => p.slug === slug)) {
+    redirect(`/${locale}/portfolio/${slug}`);
+  }
 
   // Read directly from the data layer (admin API is auth-protected).
   const all = await getArtworks();

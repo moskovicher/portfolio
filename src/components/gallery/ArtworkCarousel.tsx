@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { applyGallerySelection } from '@/lib/portfolio/gallery-order';
 
 interface CarouselProps {
   tag: string;
   imageOrder?: string; // comma-separated public IDs: "img1,img2,img3"
+  selectedImages?: string; // whitelist of publicIds; when set, only these show
 }
 
 interface CarouselImage {
@@ -13,7 +15,7 @@ interface CarouselImage {
   resourceType?: 'image' | 'video';
 }
 
-export function ArtworkCarousel({ tag, imageOrder }: CarouselProps) {
+export function ArtworkCarousel({ tag, imageOrder, selectedImages }: CarouselProps) {
   const [images, setImages] = useState<CarouselImage[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -26,20 +28,11 @@ export function ArtworkCarousel({ tag, imageOrder }: CarouselProps) {
         // auth-protected /api/cloudinary/tag route.
         const response = await fetch(`/api/gallery/${encodeURIComponent(tag)}`);
         const data = await response.json();
-        let fetchedImages = data.images || [];
-
-        // Sort by manual order if provided
-        if (imageOrder) {
-          const orderList = imageOrder.split(',').map(id => id.trim());
-          fetchedImages.sort((a: CarouselImage, b: CarouselImage) => {
-            const indexA = orderList.indexOf(a.publicId);
-            const indexB = orderList.indexOf(b.publicId);
-            // Images not in order list go to the end
-            const orderA = indexA === -1 ? 999 : indexA;
-            const orderB = indexB === -1 ? 999 : indexB;
-            return orderA - orderB;
-          });
-        }
+        const fetchedImages = applyGallerySelection(
+          (data.images || []) as CarouselImage[],
+          imageOrder,
+          selectedImages
+        );
 
         setImages(fetchedImages);
       } catch (err) {
@@ -52,7 +45,7 @@ export function ArtworkCarousel({ tag, imageOrder }: CarouselProps) {
     if (tag) {
       fetchImages();
     }
-  }, [tag, imageOrder]);
+  }, [tag, imageOrder, selectedImages]);
 
   // Auto-rotate effect
   useEffect(() => {

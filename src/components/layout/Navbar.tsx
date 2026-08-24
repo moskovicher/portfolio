@@ -7,6 +7,8 @@ import type { Locale } from '@/lib/portfolio/types';
 
 interface NavbarProps {
   locale: Locale;
+  /** When false, the Shop link is hidden (no published products). Defaults to shown. */
+  showShop?: boolean;
 }
 
 const INSTAGRAM_URL = 'https://www.instagram.com/shachar_moskovich/';
@@ -31,15 +33,15 @@ function InstagramIcon() {
   );
 }
 
-export function Navbar({ locale }: NavbarProps) {
+export function Navbar({ locale, showShop = true }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const isRtl = locale === 'he';
 
+  // Gallery now lives inside Work; Shop only appears when it has products.
   const navItems = [
     { label: { en: 'Work', he: 'עבודות' }, href: '/portfolio' },
-    { label: { en: 'Shop', he: 'חנות' }, href: '/shop' },
-    { label: { en: 'Gallery', he: 'גלריה' }, href: '/gallery' },
+    ...(showShop ? [{ label: { en: 'Shop', he: 'חנות' }, href: '/shop' }] : []),
     { label: { en: 'About', he: 'אודות' }, href: '/about' },
     { label: { en: 'Contact', he: 'יצירת קשר' }, href: '/contact' },
   ];

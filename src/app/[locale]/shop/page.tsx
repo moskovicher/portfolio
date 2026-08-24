@@ -1,5 +1,6 @@
 import type { Locale } from "@/lib/portfolio/types";
 import { getShopProducts } from "@/lib/blob-data";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,11 @@ export default async function ShopPage({ params }: { params: Promise<{ locale: L
 
   const all = await getShopProducts();
   const products = all.filter((p: any) => p.isPublished === true);
+
+  // Shop stays offline until there's something to sell.
+  if (products.length === 0) {
+    notFound();
+  }
 
   return (
     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? "rtl" : "ltr"}>

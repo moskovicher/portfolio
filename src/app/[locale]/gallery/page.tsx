@@ -1,79 +1,14 @@
+import { redirect } from "next/navigation";
 import type { Locale } from "@/lib/portfolio/types";
-import { getArtworks } from "@/lib/blob-data";
-import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
+// Gallery has been merged into Work. Keep the old URL alive by redirecting.
 export default async function GalleryPage({
   params,
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
   const { locale } = await params;
-  const isRtl = locale === "he";
-
-  // Read published artworks directly from the data layer.
-  // (Do NOT fetch /api/admin/artworks — that route is auth-protected and
-  // would return 401 for public visitors.)
-  const all = await getArtworks();
-  const artworks = all.filter((a: any) => a.isPublished === true);
-
-  return (
-    <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? "rtl" : "ltr"}>
-      <div className="max-w-site mx-auto px-5 md:px-10">
-        <div className="py-12 md:py-20">
-          <h1 className={`font-display text-6xl md:text-7xl leading-[0.92] tracking-tight mb-12 md:mb-16 ${
-            isRtl ? "font-display-he" : ""
-          }`}>
-            {locale === "he" ? "גלריה" : "Gallery"}
-          </h1>
-
-          {artworks.length === 0 ? (
-            <p className="text-ink-secondary">{locale === "he" ? "אין יצירות פורסומות עדיין" : "No artworks published yet"}</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              {artworks.map((artwork: any) => {
-                // Prefer the explicitly chosen main image URL; fall back to
-                // the images array, then to nothing.
-                const mainIndex = artwork.mainImageIndex ?? 0;
-                const mainImage =
-                  artwork.mainImageUrl
-                    ? { url: artwork.mainImageUrl }
-                    : (artwork.images?.[mainIndex] || artwork.images?.[0]);
-
-                return (
-                  <Link key={artwork.slug} href={`/${locale}/gallery/${artwork.slug}`}>
-                    <div className="group cursor-pointer">
-                      <div className="rounded border border-border overflow-hidden bg-surface aspect-square shadow-lg hover:shadow-xl transition-shadow duration-300 relative">
-                        {mainImage ? (
-                          <img
-                            src={mainImage.url}
-                            alt={artwork.title[locale]}
-                            className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-surface to-ink-muted flex items-center justify-center">
-                            <span className="text-ink-secondary text-sm">No image</span>
-                          </div>
-                        )}
-
-                        {/* Title overlay on hover */}
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <h3 className={`text-white text-center px-4 font-medium text-lg md:text-xl ${
-                            artwork.title[locale].match(/[\u0590-\u05FF]/) ? 'font-display-he' : 'font-display'
-                          }`}>
-                            {artwork.title[locale]}
-                          </h3>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-    </main>
-  );
+  redirect(`/${locale}/portfolio`);
 }
