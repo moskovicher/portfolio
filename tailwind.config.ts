@@ -15,15 +15,16 @@ const config: Config = {
         // NEUTRAL BODY FONTS
         "body": ["DM Sans", "sans-serif"], // English body
         "body-he": ["Heebo", "sans-serif"], // Hebrew body
-      },
+      },      
       colors: {
-        canvas: "#f5f3f0",
-        surface: "#faf9f8",
-        border: "#e0dcd8",
-        ink: "#1a1a18",
-        "ink-secondary": "#6b6b68",
-        "ink-muted": "#a0a09d",
-        accent: "#8C5A2B",
+        canvas: "#F6EDE7",
+        surface: "#FDFAF7",
+        border: "#E3D3C9",
+        ink: "#171210",
+        "ink-secondary": "#6B5546",
+        "ink-muted": "#A38D80",
+        accent: "#0030F6",
+        "accent-warm": "#472D1E",
       },
       maxWidth: {
         site: "1400px",
