@@ -1,0 +1,140 @@
+diff --git a/src/app/[locale]/portfolio/[slug]/page.tsx b/src/app/[locale]/portfolio/[slug]/page.tsx
+index 42fff2b..b697bd9 100644
+--- a/src/app/[locale]/portfolio/[slug]/page.tsx
++++ b/src/app/[locale]/portfolio/[slug]/page.tsx
+@@ -73,7 +73,7 @@ export default async function PortfolioDetailPage({
+               </p>
+ 
+               {/* DETAILS */}
+-              <div className="space-y-3 pt-4 border-t border-border">
++              <div className="space-y-3 pt-4 border-t-2 border-accent/25">
+                 {/* YEAR */}
+                 {project.year && (
+                   <div>
+@@ -97,15 +97,16 @@ export default async function PortfolioDetailPage({
+               </div>
+ 
+               {/* EXTERNAL LINK */}
+-              {project.externalUrl && (
+-                <div className="pt-4">
++              {project.externalUrl && project.externalUrl.trim() !== '' && (
++                <div className="pt-2">
+                   <a
+                     href={project.externalUrl}
+                     target="_blank"
+                     rel="noopener noreferrer"
+-                    className="text-ink hover:underline font-medium"
++                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded bg-accent text-white text-sm font-medium hover:opacity-85 transition-opacity"
+                   >
+-                    View Project →
++                    {locale === 'he' ? 'צפייה באתר' : 'Visit site'}
++                    <span aria-hidden="true">{isRtl ? '\u2190' : '\u2192'}</span>
+                   </a>
+                 </div>
+               )}
+diff --git a/src/app/[locale]/portfolio/page.tsx b/src/app/[locale]/portfolio/page.tsx
+index d807d6d..9adb224 100644
+--- a/src/app/[locale]/portfolio/page.tsx
++++ b/src/app/[locale]/portfolio/page.tsx
+@@ -51,7 +51,7 @@ export default async function PortfolioIndexPage({
+               <Link
+                 key={p.slug}
+                 href={`/${locale}/portfolio/${p.slug}`}
+-                className="group relative block aspect-square overflow-hidden rounded border border-border bg-surface hover:shadow-lg transition-shadow duration-300"
++                className="group relative block aspect-square overflow-hidden rounded border border-border bg-surface hover:border-accent hover:shadow-lg transition-all duration-300"
+               >
+                 {/* Project Image */}
+                 {p.image && (
+diff --git a/src/components/gallery/ArtworkCarousel.tsx b/src/components/gallery/ArtworkCarousel.tsx
+index b655998..7d6097f 100644
+--- a/src/components/gallery/ArtworkCarousel.tsx
++++ b/src/components/gallery/ArtworkCarousel.tsx
+@@ -135,7 +135,7 @@ export function ArtworkCarousel({ tag, imageOrder, selectedImages }: CarouselPro
+               key={idx}
+               onClick={() => setCurrentIndex(idx)}
+               className={`aspect-square rounded overflow-hidden border-2 transition-all hover:opacity-80 ${
+-                idx === currentIndex ? 'border-ink' : 'border-border'
++                idx === currentIndex ? 'border-accent' : 'border-border'
+               }`}
+               aria-label={`Go to image ${idx + 1}`}
+             >
+diff --git a/src/components/layout/Navbar.tsx b/src/components/layout/Navbar.tsx
+index 15040f1..9d79073 100644
+--- a/src/components/layout/Navbar.tsx
++++ b/src/components/layout/Navbar.tsx
+@@ -95,8 +95,8 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+                   isRtl ? 'font-display-he' : 'font-display'
+                 } ${
+                   isActive(item.href)
+-                    ? 'text-ink font-medium'
+-                    : 'text-ink-secondary hover:text-ink'
++                    ? 'text-accent font-medium underline decoration-2 underline-offset-8'
++                    : 'text-ink-secondary hover:text-accent'
+                 }`}
+               >
+                 {item.label[locale]}
+@@ -105,7 +105,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+             {/* Language Toggle */}
+             <Link
+               href={`/${locale === 'en' ? 'he' : 'en'}${pathname.replace(/^\/(en|he)/, '')}`}
+-              className={`text-lg tracking-[0.1em] uppercase text-ink-secondary hover:text-ink transition-colors border-l border-border pl-12 ${locale === 'en' ? 'font-display-he' : 'font-display'}`}
++              className={`text-lg tracking-[0.1em] uppercase text-ink-secondary hover:text-accent transition-colors border-l border-border pl-12 ${locale === 'en' ? 'font-display-he' : 'font-display'}`}
+             >
+               {locale === 'en' ? 'עברית' : 'English'}
+             </Link>
+@@ -118,7 +118,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="Instagram"
+-              className="flex items-center justify-center text-ink-secondary hover:text-ink transition-colors"
++              className="flex items-center justify-center text-ink-secondary hover:text-accent transition-colors"
+             >
+               <InstagramIcon />
+             </a>
+@@ -127,7 +127,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="LinkedIn"
+-              className="flex items-center justify-center text-ink-secondary hover:text-ink transition-colors"
++              className="flex items-center justify-center text-ink-secondary hover:text-accent transition-colors"
+             >
+               <LinkedInIcon />
+             </a>
+@@ -140,7 +140,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="Instagram"
+-              className="text-ink-secondary hover:text-ink transition-colors"
++              className="text-ink-secondary hover:text-accent transition-colors"
+             >
+               <InstagramIcon />
+             </a>
+@@ -149,7 +149,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="LinkedIn"
+-              className="text-ink-secondary hover:text-ink transition-colors"
++              className="text-ink-secondary hover:text-accent transition-colors"
+             >
+               <LinkedInIcon />
+             </a>
+@@ -177,8 +177,8 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+                   isRtl ? 'font-display-he' : 'font-display'
+                 } ${
+                   isActive(item.href)
+-                    ? 'text-ink font-medium'
+-                    : 'text-ink-secondary hover:text-ink'
++                    ? 'text-accent font-medium'
++                    : 'text-ink-secondary hover:text-accent'
+                 }`}
+               >
+                 {item.label[locale]}
+@@ -188,7 +188,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+               <Link
+                 href={`/${locale === 'en' ? 'he' : 'en'}${pathname.replace(/^\/(en|he)/, '')}`}
+                 onClick={() => setIsOpen(false)}
+-                className={`text-base tracking-[0.1em] uppercase text-ink-secondary hover:text-ink transition-colors ${locale === 'en' ? 'font-display-he' : 'font-display'}`}
++                className={`text-base tracking-[0.1em] uppercase text-ink-secondary hover:text-accent transition-colors ${locale === 'en' ? 'font-display-he' : 'font-display'}`}
+               >
+                 {locale === 'en' ? 'עברית' : 'English'}
+               </Link>

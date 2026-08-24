@@ -135,7 +135,7 @@ export function ArtworkCarousel({ tag, imageOrder, selectedImages }: CarouselPro
               key={idx}
               onClick={() => setCurrentIndex(idx)}
               className={`aspect-square rounded overflow-hidden border-2 transition-all hover:opacity-80 ${
-                idx === currentIndex ? 'border-ink' : 'border-border'
+                idx === currentIndex ? 'border-accent' : 'border-border'
               }`}
               aria-label={`Go to image ${idx + 1}`}
             >

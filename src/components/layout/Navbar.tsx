@@ -95,8 +95,8 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
                   isRtl ? 'font-display-he' : 'font-display'
                 } ${
                   isActive(item.href)
-                    ? 'text-ink font-medium'
-                    : 'text-ink-secondary hover:text-ink'
+                    ? 'text-accent font-medium underline decoration-2 underline-offset-8'
+                    : 'text-ink-secondary hover:text-accent'
                 }`}
               >
                 {item.label[locale]}
@@ -105,7 +105,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
             {/* Language Toggle */}
             <Link
               href={`/${locale === 'en' ? 'he' : 'en'}${pathname.replace(/^\/(en|he)/, '')}`}
-              className={`text-lg tracking-[0.1em] uppercase text-ink-secondary hover:text-ink transition-colors border-l border-border pl-12 ${locale === 'en' ? 'font-display-he' : 'font-display'}`}
+              className={`text-lg tracking-[0.1em] uppercase text-ink-secondary hover:text-accent transition-colors border-l border-border pl-12 ${locale === 'en' ? 'font-display-he' : 'font-display'}`}
             >
               {locale === 'en' ? 'עברית' : 'English'}
             </Link>
@@ -118,7 +118,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
-              className="flex items-center justify-center text-ink-secondary hover:text-ink transition-colors"
+              className="flex items-center justify-center text-ink-secondary hover:text-accent transition-colors"
             >
               <InstagramIcon />
             </a>
@@ -127,7 +127,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn"
-              className="flex items-center justify-center text-ink-secondary hover:text-ink transition-colors"
+              className="flex items-center justify-center text-ink-secondary hover:text-accent transition-colors"
             >
               <LinkedInIcon />
             </a>
@@ -140,7 +140,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
-              className="text-ink-secondary hover:text-ink transition-colors"
+              className="text-ink-secondary hover:text-accent transition-colors"
             >
               <InstagramIcon />
             </a>
@@ -149,7 +149,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn"
-              className="text-ink-secondary hover:text-ink transition-colors"
+              className="text-ink-secondary hover:text-accent transition-colors"
             >
               <LinkedInIcon />
             </a>
@@ -177,8 +177,8 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
                   isRtl ? 'font-display-he' : 'font-display'
                 } ${
                   isActive(item.href)
-                    ? 'text-ink font-medium'
-                    : 'text-ink-secondary hover:text-ink'
+                    ? 'text-accent font-medium'
+                    : 'text-ink-secondary hover:text-accent'
                 }`}
               >
                 {item.label[locale]}
@@ -188,7 +188,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
               <Link
                 href={`/${locale === 'en' ? 'he' : 'en'}${pathname.replace(/^\/(en|he)/, '')}`}
                 onClick={() => setIsOpen(false)}
-                className={`text-base tracking-[0.1em] uppercase text-ink-secondary hover:text-ink transition-colors ${locale === 'en' ? 'font-display-he' : 'font-display'}`}
+                className={`text-base tracking-[0.1em] uppercase text-ink-secondary hover:text-accent transition-colors ${locale === 'en' ? 'font-display-he' : 'font-display'}`}
               >
                 {locale === 'en' ? 'עברית' : 'English'}
               </Link>

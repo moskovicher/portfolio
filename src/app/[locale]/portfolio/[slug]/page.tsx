@@ -73,7 +73,7 @@ export default async function PortfolioDetailPage({
               </p>
 
               {/* DETAILS */}
-              <div className="space-y-3 pt-4 border-t border-border">
+              <div className="space-y-3 pt-4 border-t-2 border-accent/25">
                 {/* YEAR */}
                 {project.year && (
                   <div>
@@ -97,15 +97,16 @@ export default async function PortfolioDetailPage({
               </div>
 
               {/* EXTERNAL LINK */}
-              {project.externalUrl && (
-                <div className="pt-4">
+              {project.externalUrl && project.externalUrl.trim() !== '' && (
+                <div className="pt-2">
                   <a
                     href={project.externalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-ink hover:underline font-medium"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded bg-accent text-white text-sm font-medium hover:opacity-85 transition-opacity"
                   >
-                    View Project →
+                    {locale === 'he' ? 'צפייה באתר' : 'Visit site'}
+                    <span aria-hidden="true">{isRtl ? '\u2190' : '\u2192'}</span>
                   </a>
                 </div>
               )}

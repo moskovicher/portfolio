@@ -17,9 +17,9 @@ const config: Config = {
         "body-he": ["Heebo", "sans-serif"], // Hebrew body
       },      
       colors: {
-        canvas: "#F6EDE7",
-        surface: "#FDFAF7",
-        border: "#E3D3C9",
+        canvas: "#FBF6F2",
+        surface: "#FFFCFA",
+        border: "#E9DCD3",
         ink: "#171210",
         "ink-secondary": "#6B5546",
         "ink-muted": "#A38D80",

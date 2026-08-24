@@ -51,7 +51,7 @@ export default async function PortfolioIndexPage({
               <Link
                 key={p.slug}
                 href={`/${locale}/portfolio/${p.slug}`}
-                className="group relative block aspect-square overflow-hidden rounded border border-border bg-surface hover:shadow-lg transition-shadow duration-300"
+                className="group relative block aspect-square overflow-hidden rounded border border-border bg-surface hover:border-accent hover:shadow-lg transition-all duration-300"
               >
                 {/* Project Image */}
                 {p.image && (

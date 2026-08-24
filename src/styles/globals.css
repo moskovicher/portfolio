@@ -42,9 +42,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Custom CSS variables for colors */
 :root {
-  --color-canvas: #F6EDE7;
-  --color-surface: #FDFAF7;
-  --color-border: #E3D3C9;
+  --color-canvas: #FBF6F2;
+  --color-surface: #FFFCFA;
+  --color-border: #E9DCD3;
   --color-ink: #171210;
   --color-ink-secondary: #6B5546;
   --color-ink-muted: #A38D80;
