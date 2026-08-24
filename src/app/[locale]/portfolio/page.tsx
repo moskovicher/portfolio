@@ -23,13 +23,10 @@ export default async function PortfolioIndexPage({
   const publishedProjects = allProjects.filter((p: any) => p.isPublished);
   return (
     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? "rtl" : "ltr"}>
-      <section className="max-w-site mx-auto px-5 md:px-10 pt-24 md:pt-32 pb-14 md:pb-20">
+      <section className="max-w-site mx-auto px-5 md:px-10 pt-10 md:pt-14 pb-8 md:pb-10">
         <div className="grid md:grid-cols-12 gap-y-8 md:gap-x-12">
           <div className="md:col-span-7">
-            <p className="text-xs tracking-[0.22em] uppercase text-ink-secondary" dir="ltr">
-              {t("eyebrow")}
-            </p>
-            <h1 className={`mt-5 font-display text-5xl md:text-7xl leading-[0.95] tracking-tight ${isRtl ? "font-display-he" : ""}`}>
+            <h1 className={`font-display text-4xl md:text-6xl leading-[0.95] tracking-tight ${isRtl ? "font-display-he" : ""}`}>
               {t("workTitle")}
             </h1>
           </div>

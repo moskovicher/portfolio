@@ -10,9 +10,7 @@ interface Item {
 }
 
 export default function AdminDashboard() {
-  const [artworks, setArtworks] = useState<Item[]>([]);
   const [projects, setProjects] = useState<Item[]>([]);
-  const [commissions, setCommissions] = useState<Item[]>([]);
   const [shop, setShop] = useState<Item[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,28 +19,22 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function loadAll() {
       try {
-        const [aRes, pRes, cRes, sRes, mRes] = await Promise.all([
-          fetch('/api/admin/artworks'),
+        const [pRes, sRes, mRes] = await Promise.all([
           fetch('/api/admin/projects'),
-          fetch('/api/admin/commissions'),
           fetch('/api/admin/shop'),
           fetch('/api/admin/messages'),
         ]);
 
-        if (aRes.status === 401 || pRes.status === 401 || cRes.status === 401) {
+        if (pRes.status === 401) {
           window.location.href = '/admin/login';
           return;
         }
 
-        const aData = await aRes.json();
         const pData = await pRes.json();
-        const cData = await cRes.json();
         const sData = await sRes.json();
         const mData = await mRes.json();
 
-        setArtworks(aData.artworks || []);
         setProjects(pData.projects || []);
-        setCommissions(cData.commissions || []);
         setShop(sData.products || []);
         setMessages(mData.messages || []);
       } catch (err) {
@@ -65,12 +57,20 @@ export default function AdminDashboard() {
     <div className="max-w-5xl mx-auto p-6 md:p-10">
       <div className="flex justify-between items-center mb-10">
         <h1 className="font-display text-4xl md:text-5xl">Admin Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 text-sm border border-border rounded hover:bg-surface"
-        >
-          Logout
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/projects/reorder"
+            className="px-4 py-2 text-sm bg-ink text-canvas rounded hover:opacity-80 font-medium"
+          >
+            ⠿ Reorder Projects
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm border border-border rounded hover:bg-surface"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -80,28 +80,12 @@ export default function AdminDashboard() {
       )}
 
       <Section
-        title="Artworks"
-        items={artworks}
-        editBase="/admin/artworks"
-        viewBase="/en/gallery"
-        newHref="/admin/artworks/new"
-      />
-
-      <Section
         title="Projects"
         items={projects}
         editBase="/admin/projects"
         viewBase="/en/portfolio"
         newHref="/admin/projects/new"
         reorderHref="/admin/projects/reorder"
-      />
-
-      <Section
-        title="Commissions"
-        items={commissions}
-        editBase="/admin/commissions"
-        viewBase="/en/portfolio/commissions"
-        newHref="/admin/commissions/new"
       />
 
       <Section
@@ -158,10 +142,10 @@ function Section({
       <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
         <h2 className="font-display text-2xl">{title}</h2>
         <div className="flex items-center gap-2">
-          {reorderHref && items.length > 1 && (
+          {reorderHref && (
             <Link
               href={reorderHref}
-              className="px-4 py-2 border border-border rounded hover:bg-surface text-sm"
+              className="px-4 py-2 border border-ink rounded hover:bg-ink hover:text-canvas text-sm font-medium transition-colors"
             >
               ⠿ Reorder
             </Link>

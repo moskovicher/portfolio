@@ -1,0 +1,334 @@
+diff --git a/src/app/[locale]/portfolio/[slug]/page.tsx b/src/app/[locale]/portfolio/[slug]/page.tsx
+index fae67f9..42fff2b 100644
+--- a/src/app/[locale]/portfolio/[slug]/page.tsx
++++ b/src/app/[locale]/portfolio/[slug]/page.tsx
+@@ -37,9 +37,9 @@ export default async function PortfolioDetailPage({
+   return (
+     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? 'rtl' : 'ltr'}>
+       <div className="max-w-site mx-auto px-5 md:px-10">
+-        {/* HEADER SECTION */}
+-        <div className="py-12 md:py-20 border-b border-border">
+-          <h1 className={`font-display text-5xl md:text-6xl leading-[0.92] tracking-tight mb-6 md:mb-8 ${
++        {/* HEADER SECTION — condensed */}
++        <div className="pt-8 md:pt-10 pb-4 md:pb-5 border-b border-border">
++          <h1 className={`font-display text-3xl md:text-4xl leading-[1.05] tracking-tight ${
+             isRtl ? 'font-display-he' : ''
+           }`}>
+             {project.title[locale]}
+@@ -47,7 +47,7 @@ export default async function PortfolioDetailPage({
+ 
+           {project.award?.[locale] && (
+             <div
+-              className="inline-block px-3 py-2 rounded text-xs tracking-[0.22em] uppercase font-medium"
++              className="inline-block mt-2 px-2.5 py-1 rounded text-[11px] tracking-[0.18em] uppercase font-medium"
+               style={{ backgroundColor: project.accent + '22', color: project.accent }}
+             >
+               {project.award[locale]}
+@@ -56,13 +56,13 @@ export default async function PortfolioDetailPage({
+         </div>
+ 
+         {/* MAIN CONTENT SECTION: TEXT LEFT, IMAGE + GALLERY RIGHT */}
+-        <div className="py-12 md:py-20">
+-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
++        <div className="py-6 md:py-8">
++          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10">
+             {/* TEXT - LEFT (5 cols) */}
+-            <div className="md:col-span-5 space-y-8">
++            <div className="md:col-span-5 space-y-4">
+               {/* SUBTITLE */}
+               {project.subtitle?.[locale] && (
+-                <p className="text-lg text-ink-secondary leading-relaxed font-medium">
++                <p className="text-base text-ink-secondary leading-snug font-medium">
+                   {project.subtitle[locale]}
+                 </p>
+               )}
+@@ -73,7 +73,7 @@ export default async function PortfolioDetailPage({
+               </p>
+ 
+               {/* DETAILS */}
+-              <div className="space-y-6 pt-8 border-t border-border">
++              <div className="space-y-3 pt-4 border-t border-border">
+                 {/* YEAR */}
+                 {project.year && (
+                   <div>
+diff --git a/src/app/[locale]/portfolio/page.tsx b/src/app/[locale]/portfolio/page.tsx
+index 5224cba..d807d6d 100644
+--- a/src/app/[locale]/portfolio/page.tsx
++++ b/src/app/[locale]/portfolio/page.tsx
+@@ -23,13 +23,10 @@ export default async function PortfolioIndexPage({
+   const publishedProjects = allProjects.filter((p: any) => p.isPublished);
+   return (
+     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? "rtl" : "ltr"}>
+-      <section className="max-w-site mx-auto px-5 md:px-10 pt-24 md:pt-32 pb-14 md:pb-20">
++      <section className="max-w-site mx-auto px-5 md:px-10 pt-10 md:pt-14 pb-8 md:pb-10">
+         <div className="grid md:grid-cols-12 gap-y-8 md:gap-x-12">
+           <div className="md:col-span-7">
+-            <p className="text-xs tracking-[0.22em] uppercase text-ink-secondary" dir="ltr">
+-              {t("eyebrow")}
+-            </p>
+-            <h1 className={`mt-5 font-display text-5xl md:text-7xl leading-[0.95] tracking-tight ${isRtl ? "font-display-he" : ""}`}>
++            <h1 className={`font-display text-4xl md:text-6xl leading-[0.95] tracking-tight ${isRtl ? "font-display-he" : ""}`}>
+               {t("workTitle")}
+             </h1>
+           </div>
+diff --git a/src/app/admin/page.tsx b/src/app/admin/page.tsx
+index 1ce4323..8d81d0d 100644
+--- a/src/app/admin/page.tsx
++++ b/src/app/admin/page.tsx
+@@ -10,9 +10,7 @@ interface Item {
+ }
+ 
+ export default function AdminDashboard() {
+-  const [artworks, setArtworks] = useState<Item[]>([]);
+   const [projects, setProjects] = useState<Item[]>([]);
+-  const [commissions, setCommissions] = useState<Item[]>([]);
+   const [shop, setShop] = useState<Item[]>([]);
+   const [messages, setMessages] = useState<any[]>([]);
+   const [loading, setLoading] = useState(true);
+@@ -21,28 +19,22 @@ export default function AdminDashboard() {
+   useEffect(() => {
+     async function loadAll() {
+       try {
+-        const [aRes, pRes, cRes, sRes, mRes] = await Promise.all([
+-          fetch('/api/admin/artworks'),
++        const [pRes, sRes, mRes] = await Promise.all([
+           fetch('/api/admin/projects'),
+-          fetch('/api/admin/commissions'),
+           fetch('/api/admin/shop'),
+           fetch('/api/admin/messages'),
+         ]);
+ 
+-        if (aRes.status === 401 || pRes.status === 401 || cRes.status === 401) {
++        if (pRes.status === 401) {
+           window.location.href = '/admin/login';
+           return;
+         }
+ 
+-        const aData = await aRes.json();
+         const pData = await pRes.json();
+-        const cData = await cRes.json();
+         const sData = await sRes.json();
+         const mData = await mRes.json();
+ 
+-        setArtworks(aData.artworks || []);
+         setProjects(pData.projects || []);
+-        setCommissions(cData.commissions || []);
+         setShop(sData.products || []);
+         setMessages(mData.messages || []);
+       } catch (err) {
+@@ -65,12 +57,20 @@ export default function AdminDashboard() {
+     <div className="max-w-5xl mx-auto p-6 md:p-10">
+       <div className="flex justify-between items-center mb-10">
+         <h1 className="font-display text-4xl md:text-5xl">Admin Dashboard</h1>
+-        <button
+-          onClick={handleLogout}
+-          className="px-4 py-2 text-sm border border-border rounded hover:bg-surface"
+-        >
+-          Logout
+-        </button>
++        <div className="flex items-center gap-2">
++          <Link
++            href="/admin/projects/reorder"
++            className="px-4 py-2 text-sm bg-ink text-canvas rounded hover:opacity-80 font-medium"
++          >
++            ⠿ Reorder Projects
++          </Link>
++          <button
++            onClick={handleLogout}
++            className="px-4 py-2 text-sm border border-border rounded hover:bg-surface"
++          >
++            Logout
++          </button>
++        </div>
+       </div>
+ 
+       {error && (
+@@ -79,14 +79,6 @@ export default function AdminDashboard() {
+         </div>
+       )}
+ 
+-      <Section
+-        title="Artworks"
+-        items={artworks}
+-        editBase="/admin/artworks"
+-        viewBase="/en/gallery"
+-        newHref="/admin/artworks/new"
+-      />
+-
+       <Section
+         title="Projects"
+         items={projects}
+@@ -96,14 +88,6 @@ export default function AdminDashboard() {
+         reorderHref="/admin/projects/reorder"
+       />
+ 
+-      <Section
+-        title="Commissions"
+-        items={commissions}
+-        editBase="/admin/commissions"
+-        viewBase="/en/portfolio/commissions"
+-        newHref="/admin/commissions/new"
+-      />
+-
+       <Section
+         title="Shop"
+         items={shop}
+@@ -158,10 +142,10 @@ function Section({
+       <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
+         <h2 className="font-display text-2xl">{title}</h2>
+         <div className="flex items-center gap-2">
+-          {reorderHref && items.length > 1 && (
++          {reorderHref && (
+             <Link
+               href={reorderHref}
+-              className="px-4 py-2 border border-border rounded hover:bg-surface text-sm"
++              className="px-4 py-2 border border-ink rounded hover:bg-ink hover:text-canvas text-sm font-medium transition-colors"
+             >
+               ⠿ Reorder
+             </Link>
+diff --git a/src/components/gallery/ArtworkCarousel.tsx b/src/components/gallery/ArtworkCarousel.tsx
+index c21b8dc..b655998 100644
+--- a/src/components/gallery/ArtworkCarousel.tsx
++++ b/src/components/gallery/ArtworkCarousel.tsx
+@@ -71,23 +71,32 @@ export function ArtworkCarousel({ tag, imageOrder, selectedImages }: CarouselPro
+   };
+ 
+   if (loading) {
+-    return <div className="w-full h-96 bg-surface rounded border border-border flex items-center justify-center">Loading...</div>;
++    return <div className="w-full h-64 bg-surface rounded border border-border flex items-center justify-center">Loading...</div>;
+   }
+ 
+   if (images.length === 0) {
+-    return <div className="w-full h-96 bg-surface rounded border border-border flex items-center justify-center text-ink-secondary">No images found for this tag</div>;
++    return <div className="w-full h-64 bg-surface rounded border border-border flex items-center justify-center text-ink-secondary">No images found for this tag</div>;
+   }
+ 
+   const currentImage = images[currentIndex];
+ 
+   return (
+-    <div className="space-y-4">
+-      {/* Main Image / Video */}
+-      <div className="rounded border border-border overflow-hidden bg-surface relative group">
++    <div className="space-y-2">
++      {/* Main Image / Video — capped so the full artwork fits on screen */}
++      <div className="rounded border border-border overflow-hidden bg-surface relative group flex items-center justify-center">
+         {currentImage.resourceType === 'video' ? (
+-          <video src={currentImage.url} controls playsInline className="w-full h-auto" />
++          <video
++            src={currentImage.url}
++            controls
++            playsInline
++            className="w-full max-h-[68vh] object-contain"
++          />
+         ) : (
+-          <img src={currentImage.url} alt="Artwork" className="w-full h-auto" />
++          <img
++            src={currentImage.url}
++            alt="Artwork"
++            className="w-full max-h-[68vh] object-contain"
++          />
+         )}
+         
+         {/* Controls Overlay */}
+@@ -120,7 +129,7 @@ export function ArtworkCarousel({ tag, imageOrder, selectedImages }: CarouselPro
+ 
+       {/* Thumbnails */}
+       {images.length > 1 && (
+-        <div className="grid grid-cols-4 gap-2">
++        <div className="grid grid-cols-6 gap-1.5">
+           {images.map((img, idx) => (
+             <button
+               key={idx}
+diff --git a/src/components/layout/Navbar.tsx b/src/components/layout/Navbar.tsx
+index ecf98b3..15040f1 100644
+--- a/src/components/layout/Navbar.tsx
++++ b/src/components/layout/Navbar.tsx
+@@ -12,6 +12,7 @@ interface NavbarProps {
+ }
+ 
+ const INSTAGRAM_URL = 'https://www.instagram.com/shachar_moskovich/';
++const LINKEDIN_URL = 'https://www.linkedin.com/in/shachar-moskovich-89ba76241/';
+ 
+ function InstagramIcon() {
+   return (
+@@ -33,6 +34,26 @@ function InstagramIcon() {
+   );
+ }
+ 
++function LinkedInIcon() {
++  return (
++    <svg
++      width="22"
++      height="22"
++      viewBox="0 0 24 24"
++      fill="none"
++      stroke="currentColor"
++      strokeWidth="1.8"
++      strokeLinecap="round"
++      strokeLinejoin="round"
++      aria-hidden="true"
++    >
++      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
++      <rect x="2" y="9" width="4" height="12" />
++      <circle cx="4" cy="4" r="2" />
++    </svg>
++  );
++}
++
+ export function Navbar({ locale, showShop = true }: NavbarProps) {
+   const [isOpen, setIsOpen] = useState(false);
+   const pathname = usePathname();
+@@ -90,16 +111,27 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+             </Link>
+           </div>
+ 
+-          {/* INSTAGRAM (end corner) - desktop */}
+-          <a
+-            href={INSTAGRAM_URL}
+-            target="_blank"
+-            rel="noopener noreferrer"
+-            aria-label="Instagram"
+-            className="hidden md:flex items-center justify-center text-ink-secondary hover:text-ink transition-colors shrink-0"
+-          >
+-            <InstagramIcon />
+-          </a>
++          {/* SOCIAL (end corner) - desktop */}
++          <div className="hidden md:flex items-center gap-4 shrink-0">
++            <a
++              href={INSTAGRAM_URL}
++              target="_blank"
++              rel="noopener noreferrer"
++              aria-label="Instagram"
++              className="flex items-center justify-center text-ink-secondary hover:text-ink transition-colors"
++            >
++              <InstagramIcon />
++            </a>
++            <a
++              href={LINKEDIN_URL}
++              target="_blank"
++              rel="noopener noreferrer"
++              aria-label="LinkedIn"
++              className="flex items-center justify-center text-ink-secondary hover:text-ink transition-colors"
++            >
++              <LinkedInIcon />
++            </a>
++          </div>
+ 
+           {/* Mobile right side: Instagram + Menu button */}
+           <div className="md:hidden flex items-center gap-4">
+@@ -112,6 +144,15 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
+             >
+               <InstagramIcon />
+             </a>
++            <a
++              href={LINKEDIN_URL}
++              target="_blank"
++              rel="noopener noreferrer"
++              aria-label="LinkedIn"
++              className="text-ink-secondary hover:text-ink transition-colors"
++            >
++              <LinkedInIcon />
++            </a>
+             <button
+               onClick={() => setIsOpen(!isOpen)}
+               className="flex flex-col gap-1.5"

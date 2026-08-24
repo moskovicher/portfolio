@@ -37,9 +37,9 @@ export default async function PortfolioDetailPage({
   return (
     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="max-w-site mx-auto px-5 md:px-10">
-        {/* HEADER SECTION */}
-        <div className="py-12 md:py-20 border-b border-border">
-          <h1 className={`font-display text-5xl md:text-6xl leading-[0.92] tracking-tight mb-6 md:mb-8 ${
+        {/* HEADER SECTION — condensed */}
+        <div className="pt-8 md:pt-10 pb-4 md:pb-5 border-b border-border">
+          <h1 className={`font-display text-3xl md:text-4xl leading-[1.05] tracking-tight ${
             isRtl ? 'font-display-he' : ''
           }`}>
             {project.title[locale]}
@@ -47,7 +47,7 @@ export default async function PortfolioDetailPage({
 
           {project.award?.[locale] && (
             <div
-              className="inline-block px-3 py-2 rounded text-xs tracking-[0.22em] uppercase font-medium"
+              className="inline-block mt-2 px-2.5 py-1 rounded text-[11px] tracking-[0.18em] uppercase font-medium"
               style={{ backgroundColor: project.accent + '22', color: project.accent }}
             >
               {project.award[locale]}
@@ -56,13 +56,13 @@ export default async function PortfolioDetailPage({
         </div>
 
         {/* MAIN CONTENT SECTION: TEXT LEFT, IMAGE + GALLERY RIGHT */}
-        <div className="py-12 md:py-20">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+        <div className="py-6 md:py-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10">
             {/* TEXT - LEFT (5 cols) */}
-            <div className="md:col-span-5 space-y-8">
+            <div className="md:col-span-5 space-y-4">
               {/* SUBTITLE */}
               {project.subtitle?.[locale] && (
-                <p className="text-lg text-ink-secondary leading-relaxed font-medium">
+                <p className="text-base text-ink-secondary leading-snug font-medium">
                   {project.subtitle[locale]}
                 </p>
               )}
@@ -73,7 +73,7 @@ export default async function PortfolioDetailPage({
               </p>
 
               {/* DETAILS */}
-              <div className="space-y-6 pt-8 border-t border-border">
+              <div className="space-y-3 pt-4 border-t border-border">
                 {/* YEAR */}
                 {project.year && (
                   <div>

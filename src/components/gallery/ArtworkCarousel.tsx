@@ -71,23 +71,32 @@ export function ArtworkCarousel({ tag, imageOrder, selectedImages }: CarouselPro
   };
 
   if (loading) {
-    return <div className="w-full h-96 bg-surface rounded border border-border flex items-center justify-center">Loading...</div>;
+    return <div className="w-full h-64 bg-surface rounded border border-border flex items-center justify-center">Loading...</div>;
   }
 
   if (images.length === 0) {
-    return <div className="w-full h-96 bg-surface rounded border border-border flex items-center justify-center text-ink-secondary">No images found for this tag</div>;
+    return <div className="w-full h-64 bg-surface rounded border border-border flex items-center justify-center text-ink-secondary">No images found for this tag</div>;
   }
 
   const currentImage = images[currentIndex];
 
   return (
-    <div className="space-y-4">
-      {/* Main Image / Video */}
-      <div className="rounded border border-border overflow-hidden bg-surface relative group">
+    <div className="space-y-2">
+      {/* Main Image / Video — capped so the full artwork fits on screen */}
+      <div className="rounded border border-border overflow-hidden bg-surface relative group flex items-center justify-center">
         {currentImage.resourceType === 'video' ? (
-          <video src={currentImage.url} controls playsInline className="w-full h-auto" />
+          <video
+            src={currentImage.url}
+            controls
+            playsInline
+            className="w-full max-h-[68vh] object-contain"
+          />
         ) : (
-          <img src={currentImage.url} alt="Artwork" className="w-full h-auto" />
+          <img
+            src={currentImage.url}
+            alt="Artwork"
+            className="w-full max-h-[68vh] object-contain"
+          />
         )}
         
         {/* Controls Overlay */}
@@ -120,7 +129,7 @@ export function ArtworkCarousel({ tag, imageOrder, selectedImages }: CarouselPro
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-6 gap-1.5">
           {images.map((img, idx) => (
             <button
               key={idx}

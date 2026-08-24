@@ -12,6 +12,7 @@ interface NavbarProps {
 }
 
 const INSTAGRAM_URL = 'https://www.instagram.com/shachar_moskovich/';
+const LINKEDIN_URL = 'https://www.linkedin.com/in/shachar-moskovich-89ba76241/';
 
 function InstagramIcon() {
   return (
@@ -29,6 +30,26 @@ function InstagramIcon() {
       <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
       <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
       <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+function LinkedInIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+      <rect x="2" y="9" width="4" height="12" />
+      <circle cx="4" cy="4" r="2" />
     </svg>
   );
 }
@@ -90,16 +111,27 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
             </Link>
           </div>
 
-          {/* INSTAGRAM (end corner) - desktop */}
-          <a
-            href={INSTAGRAM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram"
-            className="hidden md:flex items-center justify-center text-ink-secondary hover:text-ink transition-colors shrink-0"
-          >
-            <InstagramIcon />
-          </a>
+          {/* SOCIAL (end corner) - desktop */}
+          <div className="hidden md:flex items-center gap-4 shrink-0">
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="flex items-center justify-center text-ink-secondary hover:text-ink transition-colors"
+            >
+              <InstagramIcon />
+            </a>
+            <a
+              href={LINKEDIN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="flex items-center justify-center text-ink-secondary hover:text-ink transition-colors"
+            >
+              <LinkedInIcon />
+            </a>
+          </div>
 
           {/* Mobile right side: Instagram + Menu button */}
           <div className="md:hidden flex items-center gap-4">
@@ -111,6 +143,15 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
               className="text-ink-secondary hover:text-ink transition-colors"
             >
               <InstagramIcon />
+            </a>
+            <a
+              href={LINKEDIN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+              className="text-ink-secondary hover:text-ink transition-colors"
+            >
+              <LinkedInIcon />
             </a>
             <button
               onClick={() => setIsOpen(!isOpen)}
