@@ -8,6 +8,8 @@ interface Item {
   publicId: string;
   caption?: string;
   resourceType: 'image' | 'video';
+  width?: number;
+  height?: number;
 }
 
 type Size = 'full' | 'half' | 'third';
@@ -25,7 +27,7 @@ const big = (item: Item) =>
 
 // Muted, looping, inline video that starts by itself. Browsers only allow
 // autoplay when the video is muted, so we set it explicitly and call play().
-function LoopVideo({ src, className }: { src: string; className: string }) {
+function LoopVideo({ src, className, ratio }: { src: string; className: string; ratio?: number }) {
   const ref = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     const v = ref.current;
@@ -47,6 +49,7 @@ function LoopVideo({ src, className }: { src: string; className: string }) {
       playsInline
       preload="auto"
       className={className}
+      style={ratio ? { aspectRatio: String(ratio) } : undefined}
     />
   );
 }
@@ -55,25 +58,33 @@ function Media({
   item,
   eager = false,
   capped = false,
+  tileRatio,
 }: {
   item: Item;
   eager?: boolean;
   /** Full-width items: never taller than the screen, centered. */
   capped?: boolean;
+  /** Inside a row: every tile gets this shape and is cropped to fill it. */
+  tileRatio?: number;
 }) {
-  const sizeClass = capped
-    ? 'block mx-auto w-auto max-w-full max-h-[85vh] h-auto rounded-md bg-surface'
-    : 'w-full h-auto rounded-md block bg-surface';
+  const natural = item.width && item.height ? item.width / item.height : undefined;
+  const sizeClass = tileRatio
+    ? 'w-full h-auto object-cover rounded-md block bg-surface'
+    : capped
+      ? 'block mx-auto w-auto max-w-full max-h-[max(85vh,640px)] h-auto rounded-md bg-surface'
+      : 'w-full h-auto rounded-md block bg-surface';
+  const ratio = tileRatio ?? natural;
   return (
     <figure className="m-0">
       {item.resourceType === 'video' ? (
-        <LoopVideo src={big(item)} className={sizeClass} />
+        <LoopVideo src={big(item)} className={sizeClass} ratio={ratio} />
       ) : (
         <img
           src={big(item)}
           alt={item.caption || ''}
           loading={eager ? 'eager' : 'lazy'}
           className={sizeClass}
+          style={tileRatio ? { aspectRatio: String(tileRatio) } : undefined}
         />
       )}
       {item.caption && (
@@ -93,6 +104,7 @@ function Media({
  *   third three in a row (good for process frames and explorations)
  * If the SECOND image is half or third, it sits beside the intro text.
  * Rows that are not full are centered. Full-width items never exceed the screen height.
+ * In a row of several images, the first image sets the shape and the others are cropped to match.
  */
 export function CaseStudyImages({
   tag,
@@ -155,6 +167,13 @@ export function CaseStudyImages({
     }
   }
 
+  // In a row of several images, the FIRST image decides the shape of all tiles,
+  // so the row lines up evenly (others are cropped to match).
+  const rowRatio = (row: Item[]) => {
+    const f = row[0];
+    return f.width && f.height ? f.width / f.height : 1;
+  };
+
   const secondBesideIntro = second && sizeOf(second) !== 'full';
 
   return (
@@ -195,7 +214,7 @@ export function CaseStudyImages({
                     : 'w-full md:w-[calc(50%-12px)]'
                 }
               >
-                <Media item={it} />
+                <Media item={it} tileRatio={row.items.length > 1 ? rowRatio(row.items) : undefined} />
               </div>
             ))}
           </div>
