@@ -36,6 +36,7 @@ interface ProjectMeta {
   closingTitle?: LT;
   closingText?: LT;
   halfImages?: string;
+  thirdImages?: string;
 }
 
 export default function EditProjectPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -125,13 +126,19 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
     setFormData({ ...formData, stats: rows });
   };
 
-  const halfSet = new Set((formData?.halfImages || '').split(',').map((x) => x.trim()).filter(Boolean));
-  const toggleHalf = (publicId: string) => {
+  const toSet = (csv?: string) => new Set((csv || '').split(',').map((x) => x.trim()).filter(Boolean));
+  const halfSet = toSet(formData?.halfImages);
+  const thirdSet = toSet(formData?.thirdImages);
+  const sizeOf = (publicId: string) => (thirdSet.has(publicId) ? 'third' : halfSet.has(publicId) ? 'half' : 'full');
+  const setSize = (publicId: string, size: string) => {
     if (!formData) return;
-    const next = new Set(halfSet);
-    if (next.has(publicId)) next.delete(publicId);
-    else next.add(publicId);
-    setFormData({ ...formData, halfImages: Array.from(next).join(',') });
+    const h = new Set(halfSet);
+    const t = new Set(thirdSet);
+    h.delete(publicId);
+    t.delete(publicId);
+    if (size === 'half') h.add(publicId);
+    if (size === 'third') t.add(publicId);
+    setFormData({ ...formData, halfImages: Array.from(h).join(','), thirdImages: Array.from(t).join(',') });
   };
 
   const saveCaption = async (publicId: string) => {
@@ -244,7 +251,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
               {orderedForLayout.length > 0 && (
                 <div>
                   <h4 className="text-sm font-bold mb-1">Image layout & captions</h4>
-                  <p className="text-xs text-ink-muted mb-3">Order is set in the gallery section below. Tick &quot;Half width&quot; on two images in a row to place them side by side. Captions save straight to Cloudinary.</p>
+                  <p className="text-xs text-ink-muted mb-3">Order is set in the gallery section below. Size: Full = one per row, Half = two side by side, Third = three in a row (good for process frames). If image 2 is Half or Third, it sits beside the intro text. Captions save straight to Cloudinary.</p>
                   <div className="space-y-2">
                     {orderedForLayout.map((img, idx) => (
                       <div key={img.publicId} className="flex items-center gap-3 bg-white border rounded p-2">
@@ -254,10 +261,16 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
                         ) : (
                           <img src={img.url} alt="" className="w-16 h-12 object-cover rounded" />
                         )}
-                        <label className="flex items-center gap-1.5 text-xs whitespace-nowrap cursor-pointer">
-                          <input type="checkbox" checked={halfSet.has(img.publicId)} onChange={() => toggleHalf(img.publicId)} />
-                          Half width
-                        </label>
+                        <select
+                          aria-label="Image size"
+                          value={sizeOf(img.publicId)}
+                          onChange={(e) => setSize(img.publicId, e.target.value)}
+                          className="text-xs p-1.5 border rounded bg-white"
+                        >
+                          <option value="full">Full</option>
+                          <option value="half">Half</option>
+                          <option value="third">Third</option>
+                        </select>
                         <input
                           type="text"
                           placeholder="Caption (optional)"

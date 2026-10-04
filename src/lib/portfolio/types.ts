@@ -78,6 +78,8 @@ export interface ProjectMeta {
   closingText?: LocalizedText;
   /** Comma-separated publicIds shown at half width (two consecutive halves sit side by side). */
   halfImages?: string;
+  /** Comma-separated publicIds shown at a third of the width (up to three in a row). */
+  thirdImages?: string;
 }
 
 export interface ProjectStat {

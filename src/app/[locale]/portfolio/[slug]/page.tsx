@@ -96,6 +96,7 @@ async function CaseStudy({
           imageOrder={project.imageOrder}
           selectedImages={project.selectedImages}
           halfImages={project.halfImages}
+          thirdImages={project.thirdImages}
           intro={intro}
           stats={statsBlock}
         />

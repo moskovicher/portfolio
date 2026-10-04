@@ -10,11 +10,13 @@ interface Item {
   resourceType: 'image' | 'video';
 }
 
+type Size = 'full' | 'half' | 'third';
+
 const parse = (csv?: string) =>
   new Set((csv || '').split(',').map((s) => s.trim()).filter(Boolean));
 
-// The gallery API returns 800px previews. Case studies run full width, so ask
-// Cloudinary for a larger, auto-format version of the same asset.
+// The gallery API returns 800px previews. Case studies run large, so ask
+// Cloudinary for a bigger, auto-format version of the same asset.
 const big = (item: Item) =>
   item.url
     .replace('c_scale,w_800,q_80', 'c_limit,w_1800,q_auto,f_auto')
@@ -50,13 +52,19 @@ function Media({ item, eager = false }: { item: Item; eager?: boolean }) {
 /**
  * Story layout for a case study:
  *   first image (hero) → intro text → second image → numbers → all other images
- * Images marked "half" in the admin sit side by side when two come in a row.
+ *
+ * Sizes are set per image in the admin:
+ *   full  (default) one image per row
+ *   half  two in a row
+ *   third three in a row (good for process frames and explorations)
+ * If the SECOND image is half or third, it sits beside the intro text.
  */
 export function CaseStudyImages({
   tag,
   imageOrder,
   selectedImages,
   halfImages,
+  thirdImages,
   intro,
   stats,
 }: {
@@ -64,6 +72,7 @@ export function CaseStudyImages({
   imageOrder?: string;
   selectedImages?: string;
   halfImages?: string;
+  thirdImages?: string;
   intro: ReactNode;
   stats: ReactNode;
 }) {
@@ -92,20 +101,26 @@ export function CaseStudyImages({
   }, [tag, imageOrder, selectedImages]);
 
   const half = parse(halfImages);
+  const third = parse(thirdImages);
+  const sizeOf = (item: Item): Size =>
+    third.has(item.publicId) ? 'third' : half.has(item.publicId) ? 'half' : 'full';
+
   const [hero, second, ...rest] = items;
 
-  // Group the remaining images: two consecutive "half" images share a row.
-  const rows: Item[][] = [];
-  for (let i = 0; i < rest.length; i++) {
-    const a = rest[i];
-    const b = rest[i + 1];
-    if (half.has(a.publicId) && b && half.has(b.publicId)) {
-      rows.push([a, b]);
-      i++;
+  // Group consecutive images of the same size into rows of 2 (half) or 3 (third).
+  const rows: { size: Size; items: Item[] }[] = [];
+  for (const item of rest) {
+    const size = sizeOf(item);
+    const last = rows[rows.length - 1];
+    const capacity = size === 'third' ? 3 : size === 'half' ? 2 : 1;
+    if (last && last.size === size && last.items.length < capacity) {
+      last.items.push(item);
     } else {
-      rows.push([a]);
+      rows.push({ size, items: [item] });
     }
   }
+
+  const secondBesideIntro = second && sizeOf(second) !== 'full';
 
   return (
     <div className="flex flex-col gap-16 md:gap-20">
@@ -115,20 +130,34 @@ export function CaseStudyImages({
         hero && <Media item={hero} eager />
       )}
 
-      {intro}
-
-      {second && <Media item={second} />}
+      {secondBesideIntro ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-center">
+          <div>{intro}</div>
+          <Media item={second} />
+        </div>
+      ) : (
+        <>
+          {intro}
+          {second && <Media item={second} />}
+        </>
+      )}
 
       {stats}
 
       {rows.map((row, idx) =>
-        row.length === 2 ? (
-          <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-8">
-            <Media item={row[0]} />
-            <Media item={row[1]} />
-          </div>
+        row.size === 'full' ? (
+          <Media key={idx} item={row.items[0]} />
         ) : (
-          <Media key={idx} item={row[0]} />
+          <div
+            key={idx}
+            className={`grid grid-cols-1 gap-8 md:gap-6 ${
+              row.size === 'third' ? 'sm:grid-cols-2 md:grid-cols-3' : 'md:grid-cols-2'
+            }`}
+          >
+            {row.items.map((it) => (
+              <Media key={it.publicId} item={it} />
+            ))}
+          </div>
         )
       )}
     </div>
