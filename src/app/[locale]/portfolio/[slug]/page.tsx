@@ -10,7 +10,7 @@ import Link from 'next/link';
 import type { ProjectMeta } from '@/lib/portfolio/types';
 
 const paragraphs = (text?: string) =>
-  (text || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+  (text || '').split(/\n+/).map((s) => s.trim()).filter(Boolean);
 
 async function CaseStudy({
   project,
@@ -34,49 +34,49 @@ async function CaseStudy({
   const next = studies.length > 1 ? studies[(i + 1) % studies.length] : null;
 
   const intro = (
-    <div className="max-w-3xl flex flex-col gap-5">
+    <div className="max-w-[62ch] flex flex-col gap-4">
       {paragraphs(project.description[locale]).map((para, idx) => (
-        <p key={idx} className="m-0 text-xl md:text-[23px] leading-relaxed">{para}</p>
+        <p key={idx} className="m-0 text-[17px] md:text-[19px] leading-[1.75]">{para}</p>
       ))}
     </div>
   );
 
   const statsBlock =
     stats.length > 0 ? (
-      <div className="flex flex-col gap-7 border-y-[1.5px] border-ink py-10">
+      <div className="flex flex-col gap-6 border-y border-ink/80 py-8 md:py-10">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           {stats.map((s, idx) => (
             <div key={idx}>
               <p
-                className={`m-0 text-6xl md:text-8xl font-extrabold leading-none tracking-tight ${
+                className={`m-0 text-5xl md:text-6xl font-extrabold leading-none tracking-tight ${
                   idx === stats.length - 1 && stats.length > 1 ? 'text-accent' : ''
                 }`}
               >
                 {s.value}
               </p>
-              <p className="mt-2 mb-0 text-lg text-ink-secondary font-semibold">{s.label?.[locale]}</p>
+              <p className="mt-2 mb-0 text-base text-ink-secondary font-semibold">{s.label?.[locale]}</p>
             </div>
           ))}
         </div>
         {project.statsNote?.[locale] && (
-          <p className="m-0 max-w-3xl text-lg md:text-[19px] leading-relaxed">{project.statsNote[locale]}</p>
+          <p className="m-0 max-w-[62ch] text-base md:text-[17px] leading-[1.75]">{project.statsNote[locale]}</p>
         )}
       </div>
     ) : null;
 
   return (
     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? 'rtl' : 'ltr'}>
-      <div className="max-w-site mx-auto px-5 md:px-10 pt-8 pb-24 flex flex-col gap-16 md:gap-20">
+      <div className="max-w-[1060px] mx-auto px-5 md:px-10 pt-8 pb-24 flex flex-col gap-12 md:gap-16">
         {/* TITLE */}
         <div className="flex flex-col gap-5">
           <Link href={`/${locale}/portfolio`} className="self-start text-[15px] font-semibold text-ink-secondary no-underline hover:text-accent py-2">
             {isRtl ? '→ ' : '← '}{t('backToAll')}
           </Link>
-          <h1 className={`${displayFont} m-0 mt-2 text-[56px] md:text-[112px] leading-none`}>
+          <h1 className={`${displayFont} m-0 mt-1 text-[40px] md:text-[64px] leading-[1.05]`}>
             {project.title[locale]}
           </h1>
           {project.subtitle?.[locale] && (
-            <p className="m-0 text-xl md:text-[22px] font-semibold text-ink-secondary">{project.subtitle[locale]}</p>
+            <p className="m-0 text-lg md:text-xl font-semibold text-ink-secondary">{project.subtitle[locale]}</p>
           )}
           {(tags.length > 0 || project.award?.[locale]) && (
             <div className="flex flex-wrap items-center gap-2.5 mt-2">
@@ -96,6 +96,7 @@ async function CaseStudy({
           imageOrder={project.imageOrder}
           selectedImages={project.selectedImages}
           halfImages={project.halfImages}
+          locale={locale}
           thirdImages={project.thirdImages}
           intro={intro}
           stats={statsBlock}
@@ -105,10 +106,10 @@ async function CaseStudy({
         {project.closingText?.[locale] && (
           <div className="rounded-md bg-[#F3EAE3] p-7 md:p-14 flex flex-col gap-4">
             {project.closingTitle?.[locale] && (
-              <p className={`${displayFont} m-0 text-4xl md:text-[52px] leading-tight`}>{project.closingTitle[locale]}</p>
+              <p className={`${displayFont} m-0 text-3xl md:text-[40px] leading-tight`}>{project.closingTitle[locale]}</p>
             )}
             {paragraphs(project.closingText[locale]).map((para, idx) => (
-              <p key={idx} className="m-0 max-w-3xl text-lg md:text-xl leading-relaxed">{para}</p>
+              <p key={idx} className="m-0 max-w-[62ch] text-base md:text-[17px] leading-[1.75]">{para}</p>
             ))}
           </div>
         )}

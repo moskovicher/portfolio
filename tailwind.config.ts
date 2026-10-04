@@ -13,7 +13,7 @@ const config: Config = {
         "display": ["Tushiaeng", "serif"], // English titles
         "display-he": ["Tushia2", "serif"], // Hebrew titles
         // NEUTRAL BODY FONTS
-        "body": ["DM Sans", "sans-serif"], // English body
+        "body": ["DM Sans", "Heebo", "sans-serif"], // English body (Heebo covers Hebrew letters)
         "body-he": ["Heebo", "sans-serif"], // Hebrew body
       },      
       colors: {

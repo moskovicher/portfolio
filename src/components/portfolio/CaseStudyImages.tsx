@@ -14,6 +14,15 @@ interface Item {
 
 type Size = 'full' | 'half' | 'third';
 
+// Captions live in Cloudinary as one string. Write "עברית || English" to give
+// each language its own caption; a caption without "||" shows in both.
+const captionFor = (caption: string | undefined, locale: string) => {
+  if (!caption) return '';
+  const [he, en] = caption.split('||').map((x) => x.trim());
+  if (en === undefined) return he;
+  return locale === 'he' ? he : en;
+};
+
 const parse = (csv?: string) =>
   new Set((csv || '').split(',').map((s) => s.trim()).filter(Boolean));
 
@@ -59,8 +68,10 @@ function Media({
   eager = false,
   capped = false,
   tileRatio,
+  locale = 'he',
 }: {
   item: Item;
+  locale?: string;
   eager?: boolean;
   /** Full-width items: never taller than the screen, centered. */
   capped?: boolean;
@@ -70,25 +81,26 @@ function Media({
   const natural = item.width && item.height ? item.width / item.height : undefined;
   const sizeClass = tileRatio
     ? 'w-full h-auto object-cover rounded-md block bg-surface'
-    : capped
-      ? 'block mx-auto w-auto max-w-full max-h-[max(85vh,640px)] h-auto rounded-md bg-surface'
-      : 'w-full h-auto rounded-md block bg-surface';
+    : 'w-full h-auto rounded-md block bg-surface';
   const ratio = tileRatio ?? natural;
+  // A tall portrait at full column width would fill several screens, so it gets
+  // a narrower, centered frame. Everything else spans the column edge to edge.
+  const narrow = capped && natural !== undefined && natural < 0.8;
   return (
-    <figure className="m-0">
+    <figure className={`m-0 ${narrow ? 'w-full max-w-[560px] mx-auto' : ''}`}>
       {item.resourceType === 'video' ? (
         <LoopVideo src={big(item)} className={sizeClass} ratio={ratio} />
       ) : (
         <img
           src={big(item)}
-          alt={item.caption || ''}
+          alt={captionFor(item.caption, locale)}
           loading={eager ? 'eager' : 'lazy'}
           className={sizeClass}
           style={tileRatio ? { aspectRatio: String(tileRatio) } : undefined}
         />
       )}
-      {item.caption && (
-        <figcaption className="mt-2.5 text-[15px] text-ink-secondary">{item.caption}</figcaption>
+      {captionFor(item.caption, locale) && (
+        <figcaption className="mt-2 text-sm text-ink-secondary leading-snug">{captionFor(item.caption, locale)}</figcaption>
       )}
     </figure>
   );
@@ -103,7 +115,8 @@ function Media({
  *   half  two in a row
  *   third three in a row (good for process frames and explorations)
  * If the SECOND image is half or third, it sits beside the intro text.
- * Rows that are not full are centered. Full-width items never exceed the screen height.
+ * Everything shares one column width, so all images line up on the same edges.
+ * A row with a single half/third image centers it (good for a vertical phone video).
  * In a row of several images, the first image sets the shape and the others are cropped to match.
  */
 export function CaseStudyImages({
@@ -114,6 +127,7 @@ export function CaseStudyImages({
   thirdImages,
   intro,
   stats,
+  locale = 'he',
 }: {
   tag?: string;
   imageOrder?: string;
@@ -122,6 +136,7 @@ export function CaseStudyImages({
   thirdImages?: string;
   intro: ReactNode;
   stats: ReactNode;
+  locale?: string;
 }) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(!!tag);
@@ -177,49 +192,49 @@ export function CaseStudyImages({
   const secondBesideIntro = second && sizeOf(second) !== 'full';
 
   return (
-    <div className="flex flex-col gap-16 md:gap-20">
+    <div className="flex flex-col gap-10 md:gap-14">
       {loading ? (
         <div className="aspect-video rounded-md bg-surface animate-pulse" />
       ) : (
-        hero && <Media item={hero} eager capped />
+        hero && <Media locale={locale} item={hero} eager capped />
       )}
 
       {secondBesideIntro ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-center">
           <div>{intro}</div>
-          <Media item={second} />
+          <Media locale={locale} item={second} />
         </div>
       ) : (
         <>
           {intro}
-          {second && <Media item={second} capped />}
+          {second && <Media locale={locale} item={second} capped />}
         </>
       )}
 
       {stats}
 
-      {rows.map((row, idx) =>
-        row.size === 'full' ? (
-          <Media key={idx} item={row.items[0]} capped />
-        ) : (
-          // Flex row: items keep their own proportions, align to the top, and a
-          // row that is not full (one half, or two thirds) is centered.
-          <div key={idx} className="flex flex-wrap justify-center items-start gap-x-6 gap-y-10">
+      {rows.map((row, idx) => {
+        if (row.size === 'full') {
+          return <Media locale={locale} key={idx} item={row.items[0]} capped />;
+        }
+        const cols = row.size === 'third' ? 3 : 2;
+        const single = row.items.length === 1;
+        return (
+          <div
+            key={idx}
+            className={`grid grid-cols-1 gap-4 ${cols === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}
+          >
             {row.items.map((it) => (
               <div
                 key={it.publicId}
-                className={
-                  row.size === 'third'
-                    ? 'w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)]'
-                    : 'w-full md:w-[calc(50%-12px)]'
-                }
+                className={single ? (cols === 3 ? 'sm:col-start-2' : 'sm:col-span-2 sm:w-1/2 sm:mx-auto') : ''}
               >
-                <Media item={it} tileRatio={row.items.length > 1 ? rowRatio(row.items) : undefined} />
+                <Media locale={locale} item={it} tileRatio={single ? undefined : rowRatio(row.items)} />
               </div>
             ))}
           </div>
-        )
-      )}
+        );
+      })}
     </div>
   );
 }
