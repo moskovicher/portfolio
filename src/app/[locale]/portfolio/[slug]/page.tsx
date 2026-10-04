@@ -122,7 +122,7 @@ async function CaseStudy({
             rel="noopener noreferrer"
             className="self-start inline-flex items-center gap-2 px-4 py-2.5 rounded bg-accent text-white text-sm font-medium hover:opacity-85 transition-opacity"
           >
-            {t('viewLive')}
+            {project.externalLabel?.[locale] || t('viewLive')}
             <span aria-hidden="true">{isRtl ? '\u2190' : '\u2192'}</span>
           </a>
         )}
@@ -250,7 +250,7 @@ export default async function PortfolioDetailPage({
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded bg-accent text-white text-sm font-medium hover:opacity-85 transition-opacity"
                   >
-                    {locale === 'he' ? 'צפייה באתר' : 'Visit site'}
+                    {project.externalLabel?.[locale] || (locale === 'he' ? 'צפייה באתר' : 'Visit site')}
                     <span aria-hidden="true">{isRtl ? '\u2190' : '\u2192'}</span>
                   </a>
                 </div>

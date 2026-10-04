@@ -80,6 +80,8 @@ export interface ProjectMeta {
   halfImages?: string;
   /** Comma-separated publicIds shown at a third of the width (up to three in a row). */
   thirdImages?: string;
+  /** Text on the external link button, e.g. "See it at Piece of History". Falls back to "View live". */
+  externalLabel?: LocalizedText;
 }
 
 export interface ProjectStat {

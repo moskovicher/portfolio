@@ -37,6 +37,7 @@ interface ProjectMeta {
   closingText?: LT;
   halfImages?: string;
   thirdImages?: string;
+  externalLabel?: LT;
 }
 
 export default function EditProjectPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -356,7 +357,12 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
         <div>
           <h3 className="font-bold mb-3">Subtitle (Optional)</h3>
           <input type="text" placeholder="Subtitle (English)" value={formData.subtitle?.en || ''} onChange={(e) => setFormData({ ...formData, subtitle: { ...formData.subtitle || { en: '', he: '' }, en: e.target.value } })} className="w-full p-2 border rounded mb-2" />
-          <input type="text" placeholder="Subtitle (Hebrew)" value={formData.subtitle?.he || ''} onChange={(e) => setFormData({ ...formData, subtitle: { ...formData.subtitle || { en: '', he: '' }, he: e.target.value } })} className="w-full p-2 border rounded" />
+          <input type="text" dir="rtl" placeholder="Subtitle (Hebrew)" value={formData.subtitle?.he || ''} onChange={(e) => setFormData({ ...formData, subtitle: { ...formData.subtitle || { en: '', he: '' }, he: e.target.value } })} className="w-full p-2 border rounded" />
+
+          <h3 className="font-bold mb-1 mt-5">Award / highlight tag (Optional)</h3>
+          <p className="text-xs text-ink-muted mb-2">The blue tag under the title, and on the project card on the Work page. Leave empty to hide.</p>
+          <input type="text" placeholder="1st prize, Piece of History competition" value={formData.award?.en || ''} onChange={(e) => setFormData({ ...formData, award: { ...(formData.award || { en: '', he: '' }), en: e.target.value } })} className="w-full p-2 border rounded mb-2" />
+          <input type="text" dir="rtl" placeholder="מקום ראשון בתחרות פיסת היסטוריה" value={formData.award?.he || ''} onChange={(e) => setFormData({ ...formData, award: { ...(formData.award || { en: '', he: '' }), he: e.target.value } })} className="w-full p-2 border rounded" />
         </div>
 
         {/* DESCRIPTION */}
@@ -398,7 +404,10 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
           <h3 className="font-bold mb-3">Other Details</h3>
           <input type="number" placeholder="Year" value={formData.year} onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })} className="w-full p-2 border rounded mb-2" />
           <input type="text" placeholder="Accent Color (hex)" value={formData.accent} onChange={(e) => setFormData({ ...formData, accent: e.target.value })} className="w-full p-2 border rounded mb-2" />
-          <input type="text" placeholder="External URL" value={formData.externalUrl || ''} onChange={(e) => setFormData({ ...formData, externalUrl: e.target.value })} className="w-full p-2 border rounded" />
+          <input type="text" placeholder="External URL" value={formData.externalUrl || ''} onChange={(e) => setFormData({ ...formData, externalUrl: e.target.value })} className="w-full p-2 border rounded mb-2" />
+          <p className="text-xs text-ink-muted mb-2 mt-2">Button text for the external link (optional; empty = &quot;View live&quot;)</p>
+          <input type="text" placeholder="See it at Piece of History" value={formData.externalLabel?.en || ''} onChange={(e) => setFormData({ ...formData, externalLabel: { ...(formData.externalLabel || { en: '', he: '' }), en: e.target.value } })} className="w-full p-2 border rounded mb-2" />
+          <input type="text" dir="rtl" placeholder="לסיכה באתר פיסת היסטוריה" value={formData.externalLabel?.he || ''} onChange={(e) => setFormData({ ...formData, externalLabel: { ...(formData.externalLabel || { en: '', he: '' }), he: e.target.value } })} className="w-full p-2 border rounded" />
         </div>
 
         {/* BUTTONS */}
