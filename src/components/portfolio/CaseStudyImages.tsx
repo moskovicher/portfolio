@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { applyGallerySelection } from '@/lib/portfolio/gallery-order';
 
 interface Item {
@@ -18,28 +18,62 @@ const parse = (csv?: string) =>
 // The gallery API returns 800px previews. Case studies run large, so ask
 // Cloudinary for a bigger, auto-format version of the same asset.
 const big = (item: Item) =>
-  item.url
-    .replace('c_scale,w_800,q_80', 'c_limit,w_1800,q_auto,f_auto')
-    .replace('f_auto,c_scale,w_800,q_80', 'f_auto,c_limit,w_1600,q_auto');
+  item.resourceType === 'video'
+    ? // keep a plain mp4 so every browser (iPhone included) can autoplay it
+      item.url.replace('f_auto,c_scale,w_800,q_80', 'c_limit,w_1600,q_auto')
+    : item.url.replace('c_scale,w_800,q_80', 'c_limit,w_1800,q_auto,f_auto');
 
-function Media({ item, eager = false }: { item: Item; eager?: boolean }) {
+// Muted, looping, inline video that starts by itself. Browsers only allow
+// autoplay when the video is muted, so we set it explicitly and call play().
+function LoopVideo({ src, className }: { src: string; className: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    v.muted = true;
+    v.defaultMuted = true;
+    const tryPlay = () => v.play().catch(() => {});
+    tryPlay();
+    v.addEventListener('canplay', tryPlay);
+    return () => v.removeEventListener('canplay', tryPlay);
+  }, [src]);
+  return (
+    <video
+      ref={ref}
+      src={src}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload="auto"
+      className={className}
+    />
+  );
+}
+
+function Media({
+  item,
+  eager = false,
+  capped = false,
+}: {
+  item: Item;
+  eager?: boolean;
+  /** Full-width items: never taller than the screen, centered. */
+  capped?: boolean;
+}) {
+  const sizeClass = capped
+    ? 'block mx-auto w-auto max-w-full max-h-[85vh] h-auto rounded-md bg-surface'
+    : 'w-full h-auto rounded-md block bg-surface';
   return (
     <figure className="m-0">
       {item.resourceType === 'video' ? (
-        <video
-          src={big(item)}
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="w-full h-auto rounded-md block bg-surface"
-        />
+        <LoopVideo src={big(item)} className={sizeClass} />
       ) : (
         <img
           src={big(item)}
           alt={item.caption || ''}
           loading={eager ? 'eager' : 'lazy'}
-          className="w-full h-auto rounded-md block bg-surface"
+          className={sizeClass}
         />
       )}
       {item.caption && (
@@ -58,6 +92,7 @@ function Media({ item, eager = false }: { item: Item; eager?: boolean }) {
  *   half  two in a row
  *   third three in a row (good for process frames and explorations)
  * If the SECOND image is half or third, it sits beside the intro text.
+ * Rows that are not full are centered. Full-width items never exceed the screen height.
  */
 export function CaseStudyImages({
   tag,
@@ -127,7 +162,7 @@ export function CaseStudyImages({
       {loading ? (
         <div className="aspect-video rounded-md bg-surface animate-pulse" />
       ) : (
-        hero && <Media item={hero} eager />
+        hero && <Media item={hero} eager capped />
       )}
 
       {secondBesideIntro ? (
@@ -138,7 +173,7 @@ export function CaseStudyImages({
       ) : (
         <>
           {intro}
-          {second && <Media item={second} />}
+          {second && <Media item={second} capped />}
         </>
       )}
 
@@ -146,16 +181,22 @@ export function CaseStudyImages({
 
       {rows.map((row, idx) =>
         row.size === 'full' ? (
-          <Media key={idx} item={row.items[0]} />
+          <Media key={idx} item={row.items[0]} capped />
         ) : (
-          <div
-            key={idx}
-            className={`grid grid-cols-1 gap-8 md:gap-6 ${
-              row.size === 'third' ? 'sm:grid-cols-2 md:grid-cols-3' : 'md:grid-cols-2'
-            }`}
-          >
+          // Flex row: items keep their own proportions, align to the top, and a
+          // row that is not full (one half, or two thirds) is centered.
+          <div key={idx} className="flex flex-wrap justify-center items-start gap-x-6 gap-y-10">
             {row.items.map((it) => (
-              <Media key={it.publicId} item={it} />
+              <div
+                key={it.publicId}
+                className={
+                  row.size === 'third'
+                    ? 'w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)]'
+                    : 'w-full md:w-[calc(50%-12px)]'
+                }
+              >
+                <Media item={it} />
+              </div>
             ))}
           </div>
         )
