@@ -52,7 +52,8 @@ async function CaseStudy({
                   idx === stats.length - 1 && stats.length > 1 ? 'text-accent' : ''
                 }`}
               >
-                {s.value}
+                {/* numbers with symbols (200+, ~70%) must stay left-to-right, even on the Hebrew page */}
+                <span dir="ltr" className="inline-block">{s.value}</span>
               </p>
               <p className="mt-2 mb-0 text-base text-ink-secondary font-semibold">{s.label?.[locale]}</p>
             </div>
