@@ -7,50 +7,31 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// One Admin API call (captions included via context: true), cached at the CDN.
 export async function GET(_request: NextRequest) {
   try {
     const result = await cloudinary.api.resources_by_tag("gallery", {
       max_results: 500,
       resource_type: "image",
+      context: true,
     });
-
-    const images = await Promise.all(
-      (result.resources || []).map(async (resource: any) => {
-        try {
-          const fullResource = await cloudinary.api.resource(resource.public_id);
-          
-          // Read from context.custom.alt
-          const caption = fullResource.context?.custom?.alt || "";
-          
-          console.log(`${resource.public_id} - caption:`, caption);
-
-          return {
-            url: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/c_scale,w_600,q_80/${resource.public_id}.${resource.format}`,
-            publicId: resource.public_id,
-            format: resource.format,
-            width: resource.width,
-            height: resource.height,
-            caption: caption,
-          };
-        } catch (err) {
-          return {
-            url: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/c_scale,w_600,q_80/${resource.public_id}.${resource.format}`,
-            publicId: resource.public_id,
-            format: resource.format,
-            width: resource.width,
-            height: resource.height,
-            caption: "",
-          };
-        }
-      })
+    const images = (result.resources || []).map((resource: any) => ({
+      url: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/c_scale,w_600,q_80/${resource.public_id}.${resource.format}`,
+      publicId: resource.public_id,
+      format: resource.format,
+      width: resource.width,
+      height: resource.height,
+      caption: resource.context?.custom?.alt || "",
+    }));
+    return NextResponse.json(
+      { images, success: true },
+      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400" } }
     );
-
-    return NextResponse.json({ images, success: true });
   } catch (error) {
     console.error("Gallery API error:", error);
     return NextResponse.json(
       { images: [], error: "Failed to fetch", success: false },
-      { status: 500 }
+      { status: 503, headers: { "Cache-Control": "no-store" } }
     );
   }
 }

@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { revalidateTag } from "next/cache";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,12 +16,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { publicId, caption } = await request.json();
+    const { publicId, caption, resourceType } = await request.json();
 
-    // Use context with a proper key-value pair
+    // Store caption in the 'alt' context field. Videos need resource_type: 'video'.
     await cloudinary.api.update(publicId, {
-      context: { alt: caption }, // Store caption in 'alt' context field
+      resource_type: resourceType === "video" ? "video" : "image",
+      context: { alt: caption },
     });
+    // Let the cached galleries pick up the new caption.
+    revalidateTag("gallery");
 
     return NextResponse.json({ success: true, caption });
   } catch (error) {

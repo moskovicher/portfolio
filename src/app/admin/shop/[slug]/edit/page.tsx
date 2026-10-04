@@ -32,7 +32,7 @@ export default function EditProductPage({ params }: { params: Promise<{ slug: st
     if (!form?.cloudinaryTag) { setImgs([]); return; }
     (async () => {
       try {
-        const res = await fetch(`/api/gallery/${encodeURIComponent(form.cloudinaryTag || '')}`);
+        const res = await fetch(`/api/gallery/${encodeURIComponent(form.cloudinaryTag || '')}?fresh=1`);
         const data = await res.json();
         setImgs(data.images || []);
       } catch { setImgs([]); }

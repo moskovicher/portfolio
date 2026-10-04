@@ -37,6 +37,9 @@ export function ImageOrderer({
   const [loading, setLoading] = useState(true);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const didInitSelection = useRef(false);
+  // Only report order/selection after images actually loaded. If Cloudinary is
+  // unavailable we must not overwrite the saved order with an empty one.
+  const hasImages = useRef(false);
 
   // Fetch images by tag
   useEffect(() => {
@@ -47,7 +50,7 @@ export function ImageOrderer({
       }
 
       try {
-        const response = await fetch(`/api/gallery/${encodeURIComponent(tag)}`);
+        const response = await fetch(`/api/gallery/${encodeURIComponent(tag)}?fresh=1`);
         const data = await response.json();
         const fetchedImages: Image[] = data.images || [];
 
@@ -63,6 +66,7 @@ export function ImageOrderer({
             return orderA - orderB;
           });
         }
+        hasImages.current = sorted.length > 0;
         setOrderedImages(sorted);
 
         // Initialise the chosen set once, from the saved selection (empty = all)
@@ -91,13 +95,14 @@ export function ImageOrderer({
 
   // Emit the full order whenever it changes (unchanged behaviour)
   useEffect(() => {
+    if (!hasImages.current) return;
     onChange(orderedImages.map((img) => img.publicId).join(','));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderedImages]);
 
   // Emit the chosen selection (in current order). All-included → '' (= "all").
   useEffect(() => {
-    if (!selectable || !onSelectionChange) return;
+    if (!selectable || !onSelectionChange || !hasImages.current) return;
     const chosenInOrder = orderedImages
       .filter((img) => included.has(img.publicId))
       .map((img) => img.publicId);

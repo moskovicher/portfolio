@@ -44,7 +44,7 @@ export default function EditCommissionPage({
     if (!formData || !formData.cloudinaryTag) { setCloudinaryImages([]); return; }
     const fetchImages = async () => {
       try {
-        const res = await fetch(`/api/gallery/${encodeURIComponent(formData.cloudinaryTag || '')}`);
+        const res = await fetch(`/api/gallery/${encodeURIComponent(formData.cloudinaryTag || '')}?fresh=1`);
         const data = await res.json();
         setCloudinaryImages(data.images || []);
       } catch (err) {

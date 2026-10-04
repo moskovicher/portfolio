@@ -49,6 +49,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [cloudinaryImages, setCloudinaryImages] = useState<Array<{ url: string; publicId: string; resourceType?: string; caption?: string }>>([]);
+  const [galleryError, setGalleryError] = useState('');
   const [captionDrafts, setCaptionDrafts] = useState<Record<string, string>>({});
   const [captionSaved, setCaptionSaved] = useState<Record<string, boolean>>({});
 
@@ -78,11 +79,13 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
     if (!formData || !formData.cloudinaryTag) { setCloudinaryImages([]); return; }
     (async () => {
       try {
-        const res = await fetch(`/api/gallery/${encodeURIComponent(formData.cloudinaryTag || '')}`);
+        const res = await fetch(`/api/gallery/${encodeURIComponent(formData.cloudinaryTag || '')}?fresh=1`);
         const data = await res.json();
         setCloudinaryImages(data.images || []);
+        setGalleryError(res.ok ? '' : data.detail || data.error || 'Cloudinary did not respond');
       } catch {
         setCloudinaryImages([]);
+        setGalleryError('Could not reach the gallery API');
       }
     })();
   }, [formData?.cloudinaryTag]);
@@ -148,7 +151,11 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
       const res = await fetch('/api/gallery/caption', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ publicId, caption }),
+        body: JSON.stringify({
+          publicId,
+          caption,
+          resourceType: cloudinaryImages.find((m) => m.publicId === publicId)?.resourceType,
+        }),
       });
       if (!res.ok) throw new Error();
       setCloudinaryImages((imgs) => imgs.map((m) => (m.publicId === publicId ? { ...m, caption } : m)));
@@ -211,6 +218,13 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
             <span className="font-medium">{formData.isPublished ? '✅ Published' : '❌ Draft'}</span>
           </label>
         </div>
+
+        {galleryError && (
+          <div className="border-2 border-red-400 bg-red-50 text-red-800 p-4 rounded text-sm">
+            <strong>Images could not be loaded from Cloudinary.</strong> Your images are safe; this is usually Cloudinary&apos;s hourly request limit and clears by itself within the hour. Avoid saving image order or sizes until the images are back.
+            <div className="mt-1 text-xs opacity-80">Cloudinary said: {galleryError}</div>
+          </div>
+        )}
 
         {/* CASE STUDY */}
         <div className="border-2 border-blue-400 bg-blue-50 p-4 rounded space-y-4">
