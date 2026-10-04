@@ -62,6 +62,27 @@ export interface ProjectMeta {
    * When empty/unset, every image carrying the tag is shown (ordered by imageOrder).
    */
   selectedImages?: string;
+
+  // ---------- CASE STUDY (Work page) ----------
+  /** When true, the project is one of the main case studies on the Work page
+   *  and its page uses the story layout. Otherwise it lives under Illustration. */
+  caseStudy?: boolean;
+  /** Comma-separated tags shown under the title, e.g. "מיתוג, עיצוב סיכה". */
+  tags?: LocalizedText;
+  /** Up to 3 big numbers, e.g. { value: "173", label: { he: "הגשות", en: "submissions" } } */
+  stats?: ProjectStat[];
+  /** One sentence shown under the numbers. */
+  statsNote?: LocalizedText;
+  /** Closing note at the end of the page (e.g. a personal story). */
+  closingTitle?: LocalizedText;
+  closingText?: LocalizedText;
+  /** Comma-separated publicIds shown at half width (two consecutive halves sit side by side). */
+  halfImages?: string;
+}
+
+export interface ProjectStat {
+  value: string;
+  label: LocalizedText;
 }
 
 // ==========================================

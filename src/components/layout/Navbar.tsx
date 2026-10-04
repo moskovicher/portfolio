@@ -62,6 +62,7 @@ export function Navbar({ locale, showShop = true }: NavbarProps) {
   // Gallery now lives inside Work; Shop only appears when it has products.
   const navItems = [
     { label: { en: 'Work', he: 'עבודות' }, href: '/portfolio' },
+    { label: { en: 'Illustration', he: 'איור' }, href: '/illustration' },
     ...(showShop ? [{ label: { en: 'Shop', he: 'חנות' }, href: '/shop' }] : []),
     { label: { en: 'About', he: 'אודות' }, href: '/about' },
     { label: { en: 'Contact', he: 'יצירת קשר' }, href: '/contact' },

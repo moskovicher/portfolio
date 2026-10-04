@@ -40,6 +40,13 @@
     "viewLive": "View live",
     "previous": "Previous",
     "next": "Next",
-    "footerLine": "© 2026 · Brand design and illustration"
+    "footerLine": "© 2026 · Brand design and illustration",
+    "heroLine": "I used to study brains.\nNow I use mine.",
+    "heroRole": "Creative · Art Direction · Illustration",
+    "selectedWork": "Selected work",
+    "navIllustration": "Illustration",
+    "illustrationTitle": "Illustration",
+    "illustrationIntro": "",
+    "nextProject": "Next project"
   }
 }

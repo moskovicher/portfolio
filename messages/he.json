@@ -40,6 +40,13 @@
     "viewLive": "צפייה באתר",
     "previous": "קודם",
     "next": "הבא",
-    "footerLine": "© 2026 · עיצוב מיתוג ואיור"
+    "footerLine": "© 2026 · עיצוב מיתוג ואיור",
+    "heroLine": "פעם חקרתי מוחות.\nהיום אני משתמשת בשלי.",
+    "heroRole": "קריאייטיב · ארט דיירקשן · איור",
+    "selectedWork": "עבודות נבחרות",
+    "navIllustration": "איור",
+    "illustrationTitle": "איור",
+    "illustrationIntro": "",
+    "nextProject": "הפרויקט הבא"
   }
 }

@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImageOrderer } from '@/components/admin/ImageOrderer';
+import { applyGallerySelection } from '@/lib/portfolio/gallery-order';
+
+type LT = { en: string; he: string };
+const emptyLT: LT = { en: '', he: '' };
 
 interface ProjectMeta {
   slug: string;
@@ -25,6 +29,13 @@ interface ProjectMeta {
   isPublished?: boolean;
   displayMode?: 'grid' | 'carousel';
   selectedImages?: string;
+  caseStudy?: boolean;
+  tags?: LT;
+  stats?: { value: string; label: LT }[];
+  statsNote?: LT;
+  closingTitle?: LT;
+  closingText?: LT;
+  halfImages?: string;
 }
 
 export default function EditProjectPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -35,7 +46,9 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [cloudinaryImages, setCloudinaryImages] = useState<Array<{ url: string; publicId: string; resourceType?: string }>>([]);
+  const [cloudinaryImages, setCloudinaryImages] = useState<Array<{ url: string; publicId: string; resourceType?: string; caption?: string }>>([]);
+  const [captionDrafts, setCaptionDrafts] = useState<Record<string, string>>({});
+  const [captionSaved, setCaptionSaved] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     params.then((p) => {
@@ -92,6 +105,55 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
     setFormData({ ...formData, tools: (formData.tools || []).filter((_, i) => i !== index) });
   };
 
+  // ---------- case study helpers ----------
+  const setLT = (key: 'tags' | 'statsNote' | 'closingTitle' | 'closingText', lang: 'en' | 'he', value: string) => {
+    if (!formData) return;
+    setFormData({ ...formData, [key]: { ...(formData[key] || emptyLT), [lang]: value } });
+  };
+
+  const statsRows = (() => {
+    const rows = [...(formData?.stats || [])];
+    while (rows.length < 3) rows.push({ value: '', label: { ...emptyLT } });
+    return rows.slice(0, 3);
+  })();
+
+  const setStat = (idx: number, field: 'value' | 'en' | 'he', value: string) => {
+    if (!formData) return;
+    const rows = statsRows.map((r) => ({ value: r.value, label: { ...r.label } }));
+    if (field === 'value') rows[idx].value = value;
+    else rows[idx].label[field] = value;
+    setFormData({ ...formData, stats: rows });
+  };
+
+  const halfSet = new Set((formData?.halfImages || '').split(',').map((x) => x.trim()).filter(Boolean));
+  const toggleHalf = (publicId: string) => {
+    if (!formData) return;
+    const next = new Set(halfSet);
+    if (next.has(publicId)) next.delete(publicId);
+    else next.add(publicId);
+    setFormData({ ...formData, halfImages: Array.from(next).join(',') });
+  };
+
+  const saveCaption = async (publicId: string) => {
+    const caption = captionDrafts[publicId] ?? '';
+    try {
+      const res = await fetch('/api/gallery/caption', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publicId, caption }),
+      });
+      if (!res.ok) throw new Error();
+      setCloudinaryImages((imgs) => imgs.map((m) => (m.publicId === publicId ? { ...m, caption } : m)));
+      setCaptionSaved((s) => ({ ...s, [publicId]: true }));
+    } catch {
+      alert('Failed to save caption');
+    }
+  };
+
+  const orderedForLayout = formData
+    ? applyGallerySelection(cloudinaryImages, formData.imageOrder, formData.selectedImages)
+    : [];
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData) return;
@@ -140,6 +202,79 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
             <input type="checkbox" checked={!!formData.isPublished} onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })} className="w-5 h-5" />
             <span className="font-medium">{formData.isPublished ? '✅ Published' : '❌ Draft'}</span>
           </label>
+        </div>
+
+        {/* CASE STUDY */}
+        <div className="border-2 border-blue-400 bg-blue-50 p-4 rounded space-y-4">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" checked={!!formData.caseStudy} onChange={(e) => setFormData({ ...formData, caseStudy: e.target.checked })} className="w-5 h-5" />
+            <span className="font-medium">Case study (shows on the Work page, story layout)</span>
+          </label>
+          <p className="text-xs text-ink-muted">Unticked projects appear under Illustration with the regular gallery layout. The intro text is the Description field below (leave an empty line between paragraphs). The first image is the hero, the second image appears after the intro.</p>
+
+          {formData.caseStudy && (
+            <>
+              <div>
+                <h4 className="text-sm font-bold mb-2">Tags (comma separated)</h4>
+                <input type="text" placeholder="Branding, Pin design, Typography" value={formData.tags?.en || ''} onChange={(e) => setLT('tags', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" />
+                <input type="text" dir="rtl" placeholder="מיתוג, עיצוב סיכה, טיפוגרפיה" value={formData.tags?.he || ''} onChange={(e) => setLT('tags', 'he', e.target.value)} className="w-full p-2 border rounded bg-white" />
+              </div>
+
+              <div>
+                <h4 className="text-sm font-bold mb-2">Big numbers (up to 3, leave empty to hide)</h4>
+                {statsRows.map((row, idx) => (
+                  <div key={idx} className="grid grid-cols-3 gap-2 mb-2">
+                    <input type="text" placeholder="173" value={row.value} onChange={(e) => setStat(idx, 'value', e.target.value)} className="p-2 border rounded bg-white" />
+                    <input type="text" placeholder="Label (English)" value={row.label.en} onChange={(e) => setStat(idx, 'en', e.target.value)} className="p-2 border rounded bg-white" />
+                    <input type="text" dir="rtl" placeholder="תווית (עברית)" value={row.label.he} onChange={(e) => setStat(idx, 'he', e.target.value)} className="p-2 border rounded bg-white" />
+                  </div>
+                ))}
+                <textarea placeholder="Sentence under the numbers (English)" value={formData.statsNote?.en || ''} onChange={(e) => setLT('statsNote', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" rows={2} />
+                <textarea dir="rtl" placeholder="משפט מתחת למספרים (עברית)" value={formData.statsNote?.he || ''} onChange={(e) => setLT('statsNote', 'he', e.target.value)} className="w-full p-2 border rounded bg-white" rows={2} />
+              </div>
+
+              <div>
+                <h4 className="text-sm font-bold mb-2">Closing note (optional, end of page)</h4>
+                <input type="text" placeholder="Title (English)" value={formData.closingTitle?.en || ''} onChange={(e) => setLT('closingTitle', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" />
+                <input type="text" dir="rtl" placeholder="כותרת (עברית)" value={formData.closingTitle?.he || ''} onChange={(e) => setLT('closingTitle', 'he', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" />
+                <textarea placeholder="Text (English)" value={formData.closingText?.en || ''} onChange={(e) => setLT('closingText', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" rows={4} />
+                <textarea dir="rtl" placeholder="טקסט (עברית)" value={formData.closingText?.he || ''} onChange={(e) => setLT('closingText', 'he', e.target.value)} className="w-full p-2 border rounded bg-white" rows={4} />
+              </div>
+
+              {orderedForLayout.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-bold mb-1">Image layout & captions</h4>
+                  <p className="text-xs text-ink-muted mb-3">Order is set in the gallery section below. Tick &quot;Half width&quot; on two images in a row to place them side by side. Captions save straight to Cloudinary.</p>
+                  <div className="space-y-2">
+                    {orderedForLayout.map((img, idx) => (
+                      <div key={img.publicId} className="flex items-center gap-3 bg-white border rounded p-2">
+                        <span className="text-xs text-ink-muted w-5 text-center">{idx + 1}</span>
+                        {img.resourceType === 'video' ? (
+                          <video src={img.url} muted playsInline className="w-16 h-12 object-cover rounded" />
+                        ) : (
+                          <img src={img.url} alt="" className="w-16 h-12 object-cover rounded" />
+                        )}
+                        <label className="flex items-center gap-1.5 text-xs whitespace-nowrap cursor-pointer">
+                          <input type="checkbox" checked={halfSet.has(img.publicId)} onChange={() => toggleHalf(img.publicId)} />
+                          Half width
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Caption (optional)"
+                          value={captionDrafts[img.publicId] ?? img.caption ?? ''}
+                          onChange={(e) => { setCaptionDrafts((d) => ({ ...d, [img.publicId]: e.target.value })); setCaptionSaved((s) => ({ ...s, [img.publicId]: false })); }}
+                          className="flex-1 min-w-0 p-1.5 border rounded text-sm"
+                        />
+                        <button type="button" onClick={() => saveCaption(img.publicId)} className="px-2.5 py-1.5 text-xs bg-gray-800 text-white rounded">
+                          {captionSaved[img.publicId] ? 'Saved' : 'Save'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* TITLE */}
@@ -213,9 +348,10 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
 
         {/* DESCRIPTION */}
         <div>
-          <h3 className="font-bold mb-3">Description</h3>
-          <textarea placeholder="Description (English)" value={formData.description.en} onChange={(e) => setFormData({ ...formData, description: { ...formData.description, en: e.target.value } })} className="w-full p-2 border rounded mb-2" rows={3} />
-          <textarea placeholder="Description (Hebrew)" value={formData.description.he} onChange={(e) => setFormData({ ...formData, description: { ...formData.description, he: e.target.value } })} className="w-full p-2 border rounded" rows={3} />
+          <h3 className="font-bold mb-1">Description</h3>
+          <p className="text-xs text-ink-muted mb-2">For case studies this is the intro text. Leave an empty line between paragraphs.</p>
+          <textarea placeholder="Description (English)" value={formData.description.en} onChange={(e) => setFormData({ ...formData, description: { ...formData.description, en: e.target.value } })} className="w-full p-2 border rounded mb-2" rows={6} />
+          <textarea dir="rtl" placeholder="Description (Hebrew)" value={formData.description.he} onChange={(e) => setFormData({ ...formData, description: { ...formData.description, he: e.target.value } })} className="w-full p-2 border rounded" rows={6} />
         </div>
 
         {/* ROLE */}
