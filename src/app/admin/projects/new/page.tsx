@@ -63,7 +63,7 @@ export default function AdminProjectsPage() {
   };
 
   const handleImageOrderChange = (newOrder: string) => {
-    setFormData({ ...formData, imageOrder: newOrder });
+    setFormData((prev) => ({ ...prev, imageOrder: newOrder }));
   };
 
   const addTool = () => {
@@ -254,7 +254,7 @@ export default function AdminProjectsPage() {
                     onChange={handleImageOrderChange}
                     selectable
                     selected={formData.selectedImages}
-                    onSelectionChange={(s) => setFormData({ ...formData, selectedImages: s })}
+                    onSelectionChange={(s) => setFormData((prev) => ({ ...prev, selectedImages: s }))}
                   />
                 </div>
               )}

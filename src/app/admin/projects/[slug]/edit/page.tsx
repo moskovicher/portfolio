@@ -343,10 +343,10 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
               <ImageOrderer
                 tag={formData.cloudinaryTag}
                 currentOrder={formData.imageOrder || ''}
-                onChange={(o) => setFormData({ ...formData, imageOrder: o })}
+                onChange={(o) => setFormData((prev) => (prev ? { ...prev, imageOrder: o } : prev))}
                 selectable
                 selected={formData.selectedImages || ''}
-                onSelectionChange={(s) => setFormData({ ...formData, selectedImages: s })}
+                onSelectionChange={(s) => setFormData((prev) => (prev ? { ...prev, selectedImages: s } : prev))}
               />
             </div>
           )}
