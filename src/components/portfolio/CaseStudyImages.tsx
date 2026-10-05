@@ -127,6 +127,7 @@ export function CaseStudyImages({
   thirdImages,
   intro,
   stats,
+  closing,
   locale = 'he',
 }: {
   tag?: string;
@@ -136,6 +137,8 @@ export function CaseStudyImages({
   thirdImages?: string;
   intro: ReactNode;
   stats: ReactNode;
+  /** Closing note (title + text). When set, the last image sits beside it. */
+  closing?: ReactNode;
   locale?: string;
 }) {
   const [items, setItems] = useState<Item[]>([]);
@@ -167,7 +170,12 @@ export function CaseStudyImages({
   const sizeOf = (item: Item): Size =>
     third.has(item.publicId) ? 'third' : half.has(item.publicId) ? 'half' : 'full';
 
-  const [hero, second, ...rest] = items;
+  // With a closing note, the last image belongs to it (only if there are enough
+  // images left for the hero and the intro image).
+  const closingItem = closing && items.length > 2 ? items[items.length - 1] : undefined;
+  const galleryItems = closingItem ? items.slice(0, -1) : items;
+
+  const [hero, second, ...rest] = galleryItems;
 
   // Group consecutive images of the same size into rows of 2 (half) or 3 (third).
   const rows: { size: Size; items: Item[] }[] = [];
@@ -235,6 +243,17 @@ export function CaseStudyImages({
           </div>
         );
       })}
+
+      {closing && (
+        <div
+          className={`rounded-md bg-[#F3EAE3] p-7 md:p-14 grid grid-cols-1 gap-8 md:gap-12 items-center ${
+            closingItem ? 'md:grid-cols-2' : ''
+          }`}
+        >
+          {closing}
+          {closingItem && <Media locale={locale} item={closingItem} />}
+        </div>
+      )}
     </div>
   );
 }
