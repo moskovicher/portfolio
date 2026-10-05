@@ -247,7 +247,7 @@ export function CaseStudyImages({
       {closing && (
         <div
           className={`rounded-md bg-[#F3EAE3] p-7 md:p-14 grid grid-cols-1 gap-8 md:gap-12 items-center ${
-            closingItem ? 'md:grid-cols-2' : ''
+            closingItem ? 'md:grid-cols-[minmax(0,1fr)_calc((100%_+_80px)/3)]' : ''
           }`}
         >
           {closing}
