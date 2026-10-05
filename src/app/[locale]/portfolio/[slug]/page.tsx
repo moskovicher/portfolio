@@ -41,6 +41,19 @@ async function CaseStudy({
     </div>
   );
 
+  // Closing note: its text goes to CaseStudyImages, which places the last
+  // gallery image beside it (see there).
+  const closing = project.closingText?.[locale] ? (
+    <div className="flex flex-col gap-4">
+      {project.closingTitle?.[locale] && (
+        <p className={`${displayFont} m-0 text-3xl md:text-[40px] leading-tight`}>{project.closingTitle[locale]}</p>
+      )}
+      {paragraphs(project.closingText[locale]).map((para, idx) => (
+        <p key={idx} className="m-0 max-w-[62ch] text-base md:text-[17px] leading-[1.75]">{para}</p>
+      ))}
+    </div>
+  ) : null;
+
   const statsBlock =
     stats.length > 0 ? (
       <div className="flex flex-col gap-6 border-y border-ink/80 py-8 md:py-10">
@@ -101,19 +114,8 @@ async function CaseStudy({
           thirdImages={project.thirdImages}
           intro={intro}
           stats={statsBlock}
+          closing={closing}
         />
-
-        {/* CLOSING NOTE */}
-        {project.closingText?.[locale] && (
-          <div className="rounded-md bg-[#F3EAE3] p-7 md:p-14 flex flex-col gap-4">
-            {project.closingTitle?.[locale] && (
-              <p className={`${displayFont} m-0 text-3xl md:text-[40px] leading-tight`}>{project.closingTitle[locale]}</p>
-            )}
-            {paragraphs(project.closingText[locale]).map((para, idx) => (
-              <p key={idx} className="m-0 max-w-[62ch] text-base md:text-[17px] leading-[1.75]">{para}</p>
-            ))}
-          </div>
-        )}
 
         {/* EXTERNAL LINK */}
         {project.externalUrl && project.externalUrl.trim() !== '' && (
