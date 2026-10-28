@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
 
 // Animated self-portrait. The file lives in /public, with the background
 // already matched to the site's canvas color (#FBF6F2).
-const ABOUT_VIDEO = "https://res.cloudinary.com/dwhfkwjxo/video/upload/v1793197228/Untitled_Artwork_1_m0vbwm.mp4";
+const ABOUT_VIDEO = "https://res.cloudinary.com/dwhfkwjxo/video/upload/v1793199701/Untitled_Artwork_2_rn2vzt.mp4";
 
 const BIO: Record<"he" | "en", string[]> = {
   he: [
