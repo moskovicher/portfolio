@@ -7,6 +7,21 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
   return { title: t("aboutTitle"), description: "About Shachar" };
 }
 
+// Animated self-portrait. The file lives in /public, with the background
+// already matched to the site's canvas color (#FBF6F2).
+const ABOUT_VIDEO = "/about-me.mp4";
+
+const BIO: Record<"he" | "en", string[]> = {
+  he: [
+    "פתרון חידות איז מיי פאשן: החל ממחקר אקדמי בתחום מדעי המוח החישוביים, דרך בנייה והובלה של קורס מתמטי לתלמידי תואר ראשון, ועד לעיצוב, מיתוג וקריאייטיב.",
+    "פתוחה לעבודות מיתוג ועיצוב, הזמנות איורים אישיים, וכן איור חי באירועים.",
+  ],
+  en: [
+    "Puzzle solving is my passion: from academic research in computational neuroscience, through building and leading a math course for undergraduate students, to design, branding, and creative.",
+    "Open to brand and graphic design commissions, and custom illustrations.",
+  ],
+};
+
 export default async function AboutPage({
   params,
 }: {
@@ -15,56 +30,41 @@ export default async function AboutPage({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "portfolio" });
   const isRtl = locale === "he";
-
-  // 👇 PASTE YOUR CLOUDINARY IMAGE URL HERE
- const aboutVideo = "https://res.cloudinary.com/dwhfkwjxo/video/upload/v1793197228/Untitled_Artwork_1_m0vbwm.mp4";
-
-<video
-  src={aboutVideo}
-  autoPlay
-  muted
-  loop
-  playsInline
-  aria-label="Shachar"
-  className="w-full h-auto rounded border border-border"
-/>
-
-  const bio = locale === "he"
-    ? [
-        "פתרון חידות איז מיי פאשן: החל ממחקר אקדמי בתחום מדעי המוח החישוביים,",
-        "דרך בנייה והובלה של קורס מתמטי לתלמידי תואר ראשון, ועד לעיצוב, מיתוג וקריאייטיב.",
-        "פתוחה לעבודות מיתוג ועיצוב, הזמנות איורים אישיים, וכן איור חי באירועים.",
-      ]
-    : [
-        "Puzzle solving is my passion: from academic research in computational neuroscience,",        
-        "through building and leading a math course for undergraduate students,",
-        "to design, branding, and creative. ",
-        "Open to brand and graphic design commissions, and custom illustrations. ",
-      ];
+  const bio = isRtl ? BIO.he : BIO.en;
 
   return (
     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? "rtl" : "ltr"}>
       <section className="max-w-site mx-auto px-5 md:px-10 pt-24 md:pt-32 pb-14 md:pb-20">
         <div className="grid md:grid-cols-12 gap-y-12 md:gap-x-12">
           <div className="md:col-span-5">
-            {aboutImage ? (
-              <img
-                src={aboutImage}
-                alt="Shachar"
-                className="w-full h-auto rounded border border-border"
-              />
-            ) : (
-              <div className="aspect-[4/5] bg-surface border border-border rounded" />
-            )}
+            <video
+              src={ABOUT_VIDEO}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-label="Shachar"
+              className="block w-full h-auto aspect-square bg-canvas rounded border border-border"
+            />
           </div>
+
           <div className="md:col-span-7">
             <p className="text-xs tracking-[0.22em] uppercase text-ink-secondary" dir="ltr">
               {t("aboutEyebrow")}
             </p>
-            <h1 className={`mt-5 font-display text-5xl md:text-7xl leading-[0.95] tracking-tight ${isRtl ? "font-display-he" : ""}`}>
+            <h1
+              className={`mt-5 font-display text-5xl md:text-7xl leading-[0.95] tracking-tight ${
+                isRtl ? "font-display-he" : ""
+              }`}
+            >
               {t("aboutTitle")}
             </h1>
-            <div className={`mt-8 space-y-4 text-lg leading-relaxed ${isRtl ? "font-body-he" : "font-body"}`}>
+            <div
+              className={`mt-8 space-y-4 text-lg leading-relaxed ${
+                isRtl ? "font-body-he" : "font-body"
+              }`}
+            >
               {bio.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
