@@ -7,8 +7,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: L
   return { title: t("aboutTitle"), description: "About Shachar" };
 }
 
-// Animated self-portrait. The file lives in /public, with the background
-// already matched to the site's canvas color (#FBF6F2).
+// Animated self-portrait, hosted on Cloudinary.
 const ABOUT_VIDEO = "https://res.cloudinary.com/dwhfkwjxo/video/upload/v1793199701/Untitled_Artwork_2_rn2vzt.mp4";
 
 const BIO: Record<"he" | "en", string[]> = {
@@ -35,17 +34,22 @@ export default async function AboutPage({
   return (
     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? "rtl" : "ltr"}>
       <section className="max-w-site mx-auto px-5 md:px-10 pt-24 md:pt-32 pb-14 md:pb-20">
-        <div className="grid md:grid-cols-12 gap-y-12 md:gap-x-12">
+        <div className="grid md:grid-cols-12 md:items-center gap-y-10 md:gap-x-8">
           <div className="md:col-span-5">
-            <video
-              src={ABOUT_VIDEO}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              aria-label="Shachar"
-              className="block w-[70%] mx-auto h-auto aspect-square"            />
+            {/* ms-auto pushes the video toward the text column, in both Hebrew and English.
+                overflow-hidden + a 2% scale trim the thin line browsers draw at the video's edge. */}
+            <div className="w-[70%] mx-auto md:ms-auto md:me-0 aspect-square overflow-hidden">
+              <video
+                src={ABOUT_VIDEO}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                aria-label="Shachar"
+                className="block w-full h-full object-cover scale-[1.02]"
+              />
+            </div>
           </div>
 
           <div className="md:col-span-7">
