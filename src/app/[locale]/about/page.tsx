@@ -45,8 +45,7 @@ export default async function AboutPage({
               playsInline
               preload="auto"
               aria-label="Shachar"
-              className="block w-full h-auto aspect-square bg-canvas rounded border border-border"
-            />
+              className="block w-[70%] mx-auto h-auto aspect-square"            />
           </div>
 
           <div className="md:col-span-7">
