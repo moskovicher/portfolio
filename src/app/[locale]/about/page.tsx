@@ -34,26 +34,25 @@ export default async function AboutPage({
   return (
     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? "rtl" : "ltr"}>
       <section className="max-w-site mx-auto px-5 md:px-10 pt-24 md:pt-32 pb-14 md:pb-20">
-        <div className="grid md:grid-cols-12 md:items-center gap-y-10 md:gap-x-8">
-          <div className="md:col-span-5">
-            {/* ms-auto pushes the video toward the text column, in both Hebrew and English.
-                overflow-hidden + a 2% scale trim the thin line browsers draw at the video's edge. */}
-            <div className="w-[70%] mx-auto md:ms-auto md:me-0 aspect-square overflow-hidden">
-              <video
-                src={ABOUT_VIDEO}
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                aria-label="Shachar"
-                className="block w-full h-full object-cover scale-[1.02]"
-              />
-            </div>
+        {/* Video and text sit side by side as one centered group.
+            On phones they stack, video on top. */}
+        <div className="flex flex-col md:flex-row items-center md:justify-center gap-10 md:gap-14">
+          {/* overflow-hidden + a 2% scale trim the thin line browsers draw at the video's edge. */}
+          <div className="w-60 md:w-80 shrink-0 aspect-square overflow-hidden">
+            <video
+              src={ABOUT_VIDEO}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              aria-label="Shachar"
+              className="block w-full h-full object-cover scale-[1.02]"
+            />
           </div>
 
-          <div className="md:col-span-7">
-            <p className="text-xs tracking-[0.22em] uppercase text-ink-secondary" dir="ltr">
+          <div className="w-full max-w-2xl min-w-0">
+            <p className="text-xs tracking-[0.22em] uppercase text-ink-secondary">
               {t("aboutEyebrow")}
             </p>
             <h1
