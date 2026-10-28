@@ -1,0 +1,129 @@
+From befccfd34391c2c97e525af5ca11b8b47cb666c3 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 5 Oct 2026 10:54:00 +0300
+Subject: [PATCH] Case study: last image sits beside the closing note
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016DKRYLBHMxB1czJexh4PYU
+---
+ src/app/[locale]/portfolio/[slug]/page.tsx   | 26 +++++++++++---------
+ src/app/admin/projects/[slug]/edit/page.tsx  |  3 ++-
+ src/components/portfolio/CaseStudyImages.tsx | 21 +++++++++++++++-
+ 3 files changed, 36 insertions(+), 14 deletions(-)
+
+diff --git a/src/app/[locale]/portfolio/[slug]/page.tsx b/src/app/[locale]/portfolio/[slug]/page.tsx
+index 9952029..65cadff 100644
+--- a/src/app/[locale]/portfolio/[slug]/page.tsx
++++ b/src/app/[locale]/portfolio/[slug]/page.tsx
+@@ -41,6 +41,19 @@ async function CaseStudy({
+     </div>
+   );
+ 
++  // Closing note: its text goes to CaseStudyImages, which places the last
++  // gallery image beside it (see there).
++  const closing = project.closingText?.[locale] ? (
++    <div className="flex flex-col gap-4">
++      {project.closingTitle?.[locale] && (
++        <p className={`${displayFont} m-0 text-3xl md:text-[40px] leading-tight`}>{project.closingTitle[locale]}</p>
++      )}
++      {paragraphs(project.closingText[locale]).map((para, idx) => (
++        <p key={idx} className="m-0 max-w-[62ch] text-base md:text-[17px] leading-[1.75]">{para}</p>
++      ))}
++    </div>
++  ) : null;
++
+   const statsBlock =
+     stats.length > 0 ? (
+       <div className="flex flex-col gap-6 border-y border-ink/80 py-8 md:py-10">
+@@ -101,20 +114,9 @@ async function CaseStudy({
+           thirdImages={project.thirdImages}
+           intro={intro}
+           stats={statsBlock}
++          closing={closing}
+         />
+ 
+-        {/* CLOSING NOTE */}
+-        {project.closingText?.[locale] && (
+-          <div className="rounded-md bg-[#F3EAE3] p-7 md:p-14 flex flex-col gap-4">
+-            {project.closingTitle?.[locale] && (
+-              <p className={`${displayFont} m-0 text-3xl md:text-[40px] leading-tight`}>{project.closingTitle[locale]}</p>
+-            )}
+-            {paragraphs(project.closingText[locale]).map((para, idx) => (
+-              <p key={idx} className="m-0 max-w-[62ch] text-base md:text-[17px] leading-[1.75]">{para}</p>
+-            ))}
+-          </div>
+-        )}
+-
+         {/* EXTERNAL LINK */}
+         {project.externalUrl && project.externalUrl.trim() !== '' && (
+           <a
+diff --git a/src/app/admin/projects/[slug]/edit/page.tsx b/src/app/admin/projects/[slug]/edit/page.tsx
+index 9983d41..fbdbc4f 100644
+--- a/src/app/admin/projects/[slug]/edit/page.tsx
++++ b/src/app/admin/projects/[slug]/edit/page.tsx
+@@ -256,7 +256,8 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
+               </div>
+ 
+               <div>
+-                <h4 className="text-sm font-bold mb-2">Closing note (optional, end of page)</h4>
++                <h4 className="text-sm font-bold mb-1">Closing note (optional, end of page)</h4>
++                <p className="text-xs text-gray-500 mb-2">The LAST image in the gallery order sits beside this text instead of in the gallery.</p>
+                 <input type="text" placeholder="Title (English)" value={formData.closingTitle?.en || ''} onChange={(e) => setLT('closingTitle', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" />
+                 <input type="text" dir="rtl" placeholder="כותרת (עברית)" value={formData.closingTitle?.he || ''} onChange={(e) => setLT('closingTitle', 'he', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" />
+                 <textarea placeholder="Text (English)" value={formData.closingText?.en || ''} onChange={(e) => setLT('closingText', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" rows={4} />
+diff --git a/src/components/portfolio/CaseStudyImages.tsx b/src/components/portfolio/CaseStudyImages.tsx
+index 9c87aa4..71d2751 100644
+--- a/src/components/portfolio/CaseStudyImages.tsx
++++ b/src/components/portfolio/CaseStudyImages.tsx
+@@ -127,6 +127,7 @@ export function CaseStudyImages({
+   thirdImages,
+   intro,
+   stats,
++  closing,
+   locale = 'he',
+ }: {
+   tag?: string;
+@@ -136,6 +137,8 @@ export function CaseStudyImages({
+   thirdImages?: string;
+   intro: ReactNode;
+   stats: ReactNode;
++  /** Closing note (title + text). When set, the last image sits beside it. */
++  closing?: ReactNode;
+   locale?: string;
+ }) {
+   const [items, setItems] = useState<Item[]>([]);
+@@ -167,7 +170,12 @@ export function CaseStudyImages({
+   const sizeOf = (item: Item): Size =>
+     third.has(item.publicId) ? 'third' : half.has(item.publicId) ? 'half' : 'full';
+ 
+-  const [hero, second, ...rest] = items;
++  // With a closing note, the last image belongs to it (only if there are enough
++  // images left for the hero and the intro image).
++  const closingItem = closing && items.length > 2 ? items[items.length - 1] : undefined;
++  const galleryItems = closingItem ? items.slice(0, -1) : items;
++
++  const [hero, second, ...rest] = galleryItems;
+ 
+   // Group consecutive images of the same size into rows of 2 (half) or 3 (third).
+   const rows: { size: Size; items: Item[] }[] = [];
+@@ -235,6 +243,17 @@ export function CaseStudyImages({
+           </div>
+         );
+       })}
++
++      {closing && (
++        <div
++          className={`rounded-md bg-[#F3EAE3] p-7 md:p-14 grid grid-cols-1 gap-8 md:gap-12 items-center ${
++            closingItem ? 'md:grid-cols-2' : ''
++          }`}
++        >
++          {closing}
++          {closingItem && <Media locale={locale} item={closingItem} />}
++        </div>
++      )}
+     </div>
+   );
+ }
+-- 
+2.43.0
+

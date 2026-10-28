@@ -17,19 +17,28 @@ export default async function AboutPage({
   const isRtl = locale === "he";
 
   // 👇 PASTE YOUR CLOUDINARY IMAGE URL HERE
-  const aboutImage = "https://res.cloudinary.com/dwhfkwjxo/image/upload/v1780483759/profilePic.jpg";
+ const aboutVideo = "https://res.cloudinary.com/dwhfkwjxo/video/upload/v1793197228/Untitled_Artwork_1_m0vbwm.mp4";
+
+<video
+  src={aboutVideo}
+  autoPlay
+  muted
+  loop
+  playsInline
+  aria-label="Shachar"
+  className="w-full h-auto rounded border border-border"
+/>
 
   const bio = locale === "he"
     ? [
-        "אני מעצבת גרפית, מאיירת ויוצרת חזותית. ",
-        "בשנים האחרונות הייתי דוקטורנטית למדעי המוח, ולאחר שנים בהם למדתי קורסים חישוביים, הייתי מרצה בקורס מתמטי וחקרתי במעבדה, הבנתי שהתשוקה האמיתית שלי היא אומנות ועיצוב. ",
-        "בעבודותיי אני משלבת בין האהבה שלי לאסתטיקה ותחכום, ואני נמשכת אל הקווים הנקיים והמדויקים. ",
+        "פתרון חידות איז מיי פאשן: החל ממחקר אקדמי בתחום מדעי המוח החישוביים,",
+        "דרך בנייה והובלה של קורס מתמטי לתלמידי תואר ראשון, ועד לעיצוב, מיתוג וקריאייטיב.",
         "פתוחה לעבודות מיתוג ועיצוב, הזמנות איורים אישיים, וכן איור חי באירועים.",
       ]
     : [
-        "A graphic designer, illustrator and visual creator, based in Israel. ",
-        "In recent years, I perused a PhD in Computational Neuroscience. After years of studying, leading a mathematical methods course, and conducting research in the lab, I realized that my true passion lies in visual art and design. ",
-        "My work combines my love for aesthetics and sophistication, and I am drawn to clean, accurate linework. ",
+        "Puzzle solving is my passion: from academic research in computational neuroscience,",        
+        "through building and leading a math course for undergraduate students,",
+        "to design, branding, and creative. ",
         "Open to brand and graphic design commissions, and custom illustrations. ",
       ];
 
