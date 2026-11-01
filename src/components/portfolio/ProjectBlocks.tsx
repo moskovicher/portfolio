@@ -41,9 +41,41 @@ function LoopVideo({ src, className, style }: { src: string; className: string; 
   return <video ref={ref} src={src} autoPlay muted loop playsInline preload="auto" className={className} style={style} />;
 }
 
-function Media({ m, ratio, alt }: { m: BlockMedia; ratio?: number; alt: string }) {
-  const cls = `w-full h-auto block rounded-md ${ratio ? 'object-cover' : ''}`;
-  const style = ratio ? { aspectRatio: String(ratio) } : undefined;
+// Max image heights. "screen" leaves room for the site's top bar.
+const MEDIA_HEIGHT: Record<NonNullable<BlockStyle['mediaHeight']>, string | undefined> = {
+  auto: undefined,
+  s: '35vh',
+  m: '55vh',
+  l: '75vh',
+  screen: 'calc(100vh - 140px)',
+};
+
+const RATIO: Record<Exclude<NonNullable<BlockStyle['mediaRatio']>, 'auto'>, number> = {
+  '1/1': 1,
+  '4/3': 4 / 3,
+  '3/4': 3 / 4,
+  '16/9': 16 / 9,
+  '2/3': 2 / 3,
+};
+
+/**
+ * One image or video.
+ *  whole: the entire image is shown (never cropped); a max height shrinks it and centers it.
+ *  crop:  the image fills a fixed shape (ratio) and is cropped to fit.
+ */
+function Media({ m, alt, fit, ratio, maxHeight }: { m: BlockMedia; alt: string; fit: 'whole' | 'crop'; ratio?: number; maxHeight?: string }) {
+  let cls: string;
+  const style: CSSProperties = {};
+  if (fit === 'crop') {
+    cls = 'w-full block rounded-md object-cover';
+    if (ratio) style.aspectRatio = String(ratio);
+    if (maxHeight) style.maxHeight = maxHeight;
+  } else if (maxHeight) {
+    cls = 'block rounded-md object-contain mx-auto w-auto max-w-full h-auto';
+    style.maxHeight = maxHeight;
+  } else {
+    cls = 'w-full h-auto block rounded-md';
+  }
   return m.resourceType === 'video' ? (
     <LoopVideo src={bigMediaUrl(m)} className={cls} style={style} />
   ) : (
@@ -141,14 +173,24 @@ function BlockBody({ block, lang }: { block: Block; lang: Lang }) {
       if (!media.length) return null;
       const cols = Math.min(block.columns || 1, 3);
       const first = media[0];
-      // In a row of several images, the first one sets the shape and the rest are cropped to match.
-      const ratio = cols > 1 && first.width && first.height ? first.width / first.height : undefined;
+      const fit = s.mediaFit || 'whole';
+      // Cropping: a chosen shape, or the first image's own shape so the row lines up.
+      const ratio =
+        fit === 'crop'
+          ? s.mediaRatio && s.mediaRatio !== 'auto'
+            ? RATIO[s.mediaRatio]
+            : first.width && first.height
+              ? first.width / first.height
+              : undefined
+          : undefined;
       const grid = cols === 3 ? 'grid-cols-1 sm:grid-cols-3' : cols === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1';
       const caption = tr(block.caption, lang);
       return (
         <figure className="m-0 flex flex-col gap-3">
-          <div className={`grid ${grid} gap-4 md:gap-6`}>
-            {media.map((m) => <Media key={m.publicId + m.url} m={m} ratio={ratio} alt={caption} />)}
+          <div className={`grid ${grid} gap-4 md:gap-6 items-center`}>
+            {media.map((m) => (
+              <Media key={m.publicId + m.url} m={m} alt={caption} fit={fit} ratio={ratio} maxHeight={MEDIA_HEIGHT[s.mediaHeight || 'auto']} />
+            ))}
           </div>
           {caption && <figcaption className={`text-sm opacity-75 leading-snug ${font} ${ALIGN[s.align]}`}>{caption}</figcaption>}
         </figure>
@@ -166,10 +208,33 @@ function BlockBody({ block, lang }: { block: Block; lang: Lang }) {
           ))}
         </div>
       );
-      const image = block.media ? <Media m={block.media} alt={title} /> : <div />;
+      const fit = s.mediaFit || 'whole';
+      const m = block.media;
+      const ratio =
+        fit === 'crop'
+          ? s.mediaRatio && s.mediaRatio !== 'auto'
+            ? RATIO[s.mediaRatio]
+            : m?.width && m?.height
+              ? m.width / m.height
+              : undefined
+          : undefined;
+      const image = m ? (
+        <Media m={m} alt={title} fit={fit} ratio={ratio} maxHeight={MEDIA_HEIGHT[s.mediaHeight || 'auto']} />
+      ) : (
+        <div />
+      );
+      // Column widths in DOM order (image first when it sits at the start side).
+      const share = s.imageShare || 'half';
+      const imageFirst = block.imageSide === 'start';
+      const cols =
+        share === 'half'
+          ? 'md:grid-cols-2'
+          : share === 'third'
+            ? imageFirst ? 'md:grid-cols-[1fr_2fr]' : 'md:grid-cols-[2fr_1fr]'
+            : imageFirst ? 'md:grid-cols-[2fr_1fr]' : 'md:grid-cols-[1fr_2fr]';
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-          {block.imageSide === 'start' ? <>{image}{text}</> : <>{text}{image}</>}
+        <div className={`grid grid-cols-1 ${cols} gap-8 md:gap-12 items-center`}>
+          {imageFirst ? <>{image}{text}</> : <>{text}{image}</>}
         </div>
       );
     }

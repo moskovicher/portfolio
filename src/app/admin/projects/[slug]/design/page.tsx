@@ -106,12 +106,14 @@ function blocksFromExisting(p: ProjectMeta, items: Item[]): Block[] {
 
 // ---------- small UI pieces ----------
 
+// A div, not a <label>: a label wrapping several buttons would "click" the first
+// button whenever its caption is clicked.
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5" role="group" aria-label={label}>
       <span className="text-xs font-semibold text-neutral-600">{label}</span>
       {children}
-    </label>
+    </div>
   );
 }
 
@@ -621,7 +623,6 @@ function ContentFields({ block, items, onPatch }: { block: Block; items: Item[];
               </div>
             </Field>
           )}
-          {block.columns > 1 && <p className="text-[11px] text-neutral-500 m-0">בשורה של כמה תמונות, הראשונה קובעת את הצורה ושאר התמונות נחתכות כך שיתאימו לה.</p>}
           <Field label="כיתוב (לא חובה)"><LTInput value={block.caption} onChange={(caption) => onPatch({ caption })} /></Field>
         </>
       );
@@ -692,6 +693,59 @@ function StyleFields({ block, onPatch }: { block: Block; onPatch: (p: Partial<Bl
         <Field label="יישור">
           <Seg value={s.align} options={[{ value: 'start', label: 'לתחילת השורה' }, { value: 'center', label: 'מרכז' }, { value: 'end', label: 'לסוף השורה' }]} onChange={(align) => onPatch({ align })} />
         </Field>
+      )}
+      {(block.type === 'images' || block.type === 'textImage') && (
+        <div className="flex flex-col gap-3 rounded border border-neutral-200 bg-neutral-50 p-3">
+          <h3 className="text-xs font-bold text-neutral-700 m-0">תצוגת התמונה</h3>
+          <Field label="איך התמונה מוצגת">
+            <Seg
+              value={block.style?.mediaFit || 'whole'}
+              options={[{ value: 'whole', label: 'שלמה, בלי חיתוך' }, { value: 'crop', label: 'חתוכה לצורה קבועה' }]}
+              onChange={(mediaFit) => onPatch({ mediaFit })}
+            />
+          </Field>
+          {block.style?.mediaFit === 'crop' && (
+            <Field label="צורה">
+              <Seg
+                value={block.style?.mediaRatio || 'auto'}
+                options={[
+                  { value: 'auto', label: 'כמו התמונה הראשונה' },
+                  { value: '1/1', label: 'ריבוע' },
+                  { value: '4/3', label: '4:3 שוכב' },
+                  { value: '3/4', label: '3:4 עומד' },
+                  { value: '16/9', label: '16:9 רחב' },
+                  { value: '2/3', label: '2:3 גבוה' },
+                ]}
+                onChange={(mediaRatio) => onPatch({ mediaRatio })}
+              />
+            </Field>
+          )}
+          <Field label="גובה מקסימלי">
+            <Seg
+              value={block.style?.mediaHeight || 'auto'}
+              options={[
+                { value: 'auto', label: 'חופשי' },
+                { value: 's', label: 'קטן' },
+                { value: 'm', label: 'בינוני' },
+                { value: 'l', label: 'גדול' },
+                { value: 'screen', label: 'נכנס במסך' },
+              ]}
+              onChange={(mediaHeight) => onPatch({ mediaHeight })}
+            />
+          </Field>
+          {block.type === 'textImage' && (
+            <Field label="כמה מקום התמונה תופסת בשורה">
+              <Seg
+                value={block.style?.imageShare || 'half'}
+                options={[{ value: 'third', label: 'שליש' }, { value: 'half', label: 'חצי' }, { value: 'twoThirds', label: 'שני שליש' }]}
+                onChange={(imageShare) => onPatch({ imageShare })}
+              />
+            </Field>
+          )}
+          <p className="text-[11px] text-neutral-500 m-0">
+            "שלמה" מציגה את כל התמונה. "נכנס במסך" מקטין אותה כך שתיכנס במסך אחד בלי גלילה. "חתוכה" ממלאת צורה אחידה, ולכן חלק מהתמונה עלול להיחתך.
+          </p>
+        </div>
       )}
       <Field label="רוחב">
         <Seg value={s.width} options={[{ value: 'narrow', label: 'צר (קריאה)' }, { value: 'wide', label: 'רחב' }, { value: 'full', label: 'מקצה לקצה' }]} onChange={(width) => onPatch({ width })} />

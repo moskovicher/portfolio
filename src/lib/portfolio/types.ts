@@ -115,6 +115,16 @@ export interface BlockStyle {
   width?: 'narrow' | 'wide' | 'full';
   /** Space above and below the block. */
   space?: 'none' | 's' | 'm' | 'l';
+
+  // ---- image display (images and text+image blocks) ----
+  /** whole = show the entire image, never cropped (default). crop = fill a fixed shape. */
+  mediaFit?: 'whole' | 'crop';
+  /** Maximum image height. "screen" keeps the image inside one screen. */
+  mediaHeight?: 'auto' | 's' | 'm' | 'l' | 'screen';
+  /** Shape used when mediaFit is "crop". "auto" = the first image's own shape. */
+  mediaRatio?: 'auto' | '1/1' | '4/3' | '3/4' | '16/9' | '2/3';
+  /** Text + image: how much of the row the image takes. */
+  imageShare?: 'third' | 'half' | 'twoThirds';
 }
 
 export type Block =
