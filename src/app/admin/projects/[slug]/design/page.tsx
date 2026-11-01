@@ -34,7 +34,7 @@ const TYPE_LABEL: Record<Block['type'], string> = {
   divider: 'קו מפריד',
 };
 
-const PALETTE = ['#FBF6F2', '#FFFCFA', '#FFFFFF', '#E9DCD3', '#171210', '#6B5546', '#472D1E', '#0030F6'];
+const PALETTE = ['#FBF6F2', '#FFFCFA', '#FFFFFF', '#F3EAE3', '#E9DCD3', '#171210', '#6B5546', '#472D1E', '#0030F6'];
 
 function makeBlock(type: Block['type']): Block {
   const id = newId();
@@ -756,6 +756,21 @@ function StyleFields({ block, onPatch }: { block: Block; onPatch: (p: Partial<Bl
       <Field label="צבע רקע לבלוק">
         <ColorPick value={block.style?.bg} onChange={(bg) => onPatch({ bg })} />
       </Field>
+      {block.style?.bg && (
+        <Field label="צורת הרקע">
+          <Seg
+            value={block.style?.bgShape || 'box'}
+            options={[
+              { value: 'box', label: 'תיבה מעוגלת (כמו בניל"י)' },
+              { value: 'band', label: 'פס לכל רוחב העמוד' },
+            ]}
+            onChange={(bgShape) => onPatch({ bgShape })}
+          />
+          <p className="text-[11px] text-neutral-500 m-0">
+            בלוקים רצופים עם אותו צבע תיבה נכנסים לאותה תיבה. כך אפשר לשים כותרת, טקסט ותמונה בתוך תיבה אחת. הצבע של ניל"י הוא #F3EAE3.
+          </p>
+        </Field>
+      )}
       {block.type !== 'spacer' && (
         <Field label="צבע טקסט">
           <ColorPick value={block.style?.color} onChange={(color) => onPatch({ color })} />

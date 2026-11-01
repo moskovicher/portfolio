@@ -284,6 +284,29 @@ function BlockBody({ block, lang }: { block: Block; lang: Lang }) {
   }
 }
 
+// Inside a colored box the content already has its own padding, so the
+// column only sets the box's outer width.
+const BOX_WIDTH: Record<NonNullable<BlockStyle['width']>, string> = {
+  narrow: 'max-w-[720px] mx-auto px-5 md:px-10',
+  wide: 'max-w-[1060px] mx-auto px-5 md:px-10',
+  full: 'max-w-[1060px] mx-auto px-5 md:px-10',
+};
+
+const SPACE_TOP: Record<NonNullable<BlockStyle['space']>, string> = {
+  none: 'pt-0',
+  s: 'pt-4 md:pt-6',
+  m: 'pt-8 md:pt-12',
+  l: 'pt-14 md:pt-24',
+};
+const SPACE_BOTTOM: Record<NonNullable<BlockStyle['space']>, string> = {
+  none: 'pb-0',
+  s: 'pb-4 md:pb-6',
+  m: 'pb-8 md:pb-12',
+  l: 'pb-14 md:pb-24',
+};
+
+const usesBox = (b: Block) => !!b.style?.bg && (b.style?.bgShape || 'box') === 'box' && (b.style?.width || defaultStyle(b.type).width) !== 'full';
+
 export function ProjectBlocks({
   blocks,
   locale,
@@ -297,29 +320,80 @@ export function ProjectBlocks({
   onSelect?: (id: string) => void;
 }) {
   const lang: Lang = locale === 'he' ? 'he' : 'en';
+  const editable = !!onSelect;
+
+  // Consecutive blocks with the same box color are drawn inside one panel.
+  const groups: Block[][] = [];
+  for (const b of blocks) {
+    const last = groups[groups.length - 1];
+    if (last && usesBox(b) && usesBox(last[0]) && last[0].style?.bg === b.style?.bg) last.push(b);
+    else groups.push([b]);
+  }
+
+  const clickProps = (block: Block, base: string) =>
+    editable
+      ? {
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onSelect!(block.id);
+          },
+          className: `${base} cursor-pointer outline-offset-[-2px] ${
+            selectedId === block.id ? 'outline outline-2 outline-[#0030F6]' : 'hover:outline hover:outline-1 hover:outline-[#0030F6]/40'
+          }`,
+        }
+      : { className: base };
+
+  // Called as a function (it has no hooks) so an empty block comes back as null.
+  const body = (block: Block) => BlockBody({ block, lang });
+
   return (
     <div className="flex flex-col">
-      {blocks.map((block) => {
+      {groups.map((group) => {
+        const first = group[0];
+
+        // ---- a colored box (one or more blocks) ----
+        if (usesBox(first)) {
+          const fs = { ...defaultStyle(first.type), ...(first.style || {}) };
+          const last = group[group.length - 1];
+          const ls = { ...defaultStyle(last.type), ...(last.style || {}) };
+          // The box sits in the widest column used by its blocks.
+          const width = group.some((b) => (b.style?.width || defaultStyle(b.type).width) !== 'narrow') ? 'wide' : 'narrow';
+          const top = SPACE_TOP[fs.space];
+          const bottom = SPACE_BOTTOM[ls.space];
+          return (
+            <section key={first.id} className={`${top} ${bottom}`}>
+              <div className={BOX_WIDTH[width]}>
+                <div
+                  className="rounded-md p-7 md:p-14 flex flex-col gap-8 md:gap-12"
+                  style={{ backgroundColor: first.style?.bg, ...(first.style?.color ? { color: first.style.color } : {}) }}
+                >
+                  {group.map((block) => {
+                    const s = { ...defaultStyle(block.type), ...(block.style || {}) };
+                    const own: CSSProperties = block.style?.color ? { color: block.style.color } : {};
+                    const narrow = s.width === 'narrow' && width === 'wide' ? 'max-w-[62ch]' : '';
+                    return (
+                      <div key={block.id} style={own} {...clickProps(block, narrow)}>
+                        {body(block) ?? (editable ? <EmptyHint type={block.type} /> : null)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+          );
+        }
+
+        // ---- a plain block, or a full-width colored band ----
+        const block = first;
         const s = { ...defaultStyle(block.type), ...(block.style || {}) };
         const band: CSSProperties = {};
         if (block.style?.bg) band.backgroundColor = block.style.bg;
         if (block.style?.color) band.color = block.style.color;
-        const inner = <BlockBody block={block} lang={lang} />;
-        const editable = !!onSelect;
-        const wrapperProps = editable
-          ? {
-              onClick: (e: React.MouseEvent) => {
-                e.stopPropagation();
-                onSelect!(block.id);
-              },
-              className: `${SPACE[s.space]} cursor-pointer outline-offset-[-2px] ${
-                selectedId === block.id ? 'outline outline-2 outline-[#0030F6]' : 'hover:outline hover:outline-1 hover:outline-[#0030F6]/40'
-              }`,
-            }
-          : { className: SPACE[s.space] };
         return (
-          <section key={block.id} style={band} {...wrapperProps}>
-            <div className={s.width === 'full' && block.type !== 'images' ? 'w-full px-5 md:px-10' : WIDTH[s.width]}>{inner ?? (editable ? <EmptyHint type={block.type} /> : null)}</div>
+          <section key={block.id} style={band} {...clickProps(block, SPACE[s.space])}>
+            <div className={s.width === 'full' && block.type !== 'images' ? 'w-full px-5 md:px-10' : WIDTH[s.width]}>
+              {body(block) ?? (editable ? <EmptyHint type={block.type} /> : null)}
+            </div>
           </section>
         );
       })}

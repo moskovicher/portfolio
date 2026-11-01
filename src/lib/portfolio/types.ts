@@ -104,8 +104,13 @@ export interface BlockMedia {
 }
 
 export interface BlockStyle {
-  /** Background color of the block's band (any CSS color). Empty = transparent. */
+  /** Background color of the block (any CSS color). Empty = transparent. */
   bg?: string;
+  /** How the background color is drawn:
+   *  box  = a rounded panel inside the content column, like the closing note on Nili (default);
+   *  band = a strip across the whole width of the page.
+   *  Consecutive blocks with the same box color share one panel. */
+  bgShape?: 'box' | 'band';
   /** Text color. Empty = the page's text color. */
   color?: string;
   font?: 'display' | 'body';
