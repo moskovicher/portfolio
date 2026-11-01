@@ -82,6 +82,64 @@ export interface ProjectMeta {
   thirdImages?: string;
   /** Text on the external link button, e.g. "See it at Piece of History". Falls back to "View live". */
   externalLabel?: LocalizedText;
+
+  // ---------- LAYOUT EDITOR (Admin → Design) ----------
+  /** When set (and non-empty), a case study page is built from these blocks
+   *  instead of the automatic story layout. Projects without blocks keep the old layout. */
+  blocks?: Block[];
+  /** Page-wide colors for a block-built page. */
+  pageStyle?: PageStyle;
+}
+
+// ==========================================
+// LAYOUT BLOCKS (for the admin layout editor)
+// ==========================================
+
+export interface BlockMedia {
+  url: string;
+  publicId: string;
+  resourceType: 'image' | 'video';
+  width?: number;
+  height?: number;
+}
+
+export interface BlockStyle {
+  /** Background color of the block's band (any CSS color). Empty = transparent. */
+  bg?: string;
+  /** Text color. Empty = the page's text color. */
+  color?: string;
+  font?: 'display' | 'body';
+  size?: 's' | 'm' | 'l' | 'xl';
+  align?: 'start' | 'center' | 'end';
+  /** How wide the content runs. */
+  width?: 'narrow' | 'wide' | 'full';
+  /** Space above and below the block. */
+  space?: 'none' | 's' | 'm' | 'l';
+}
+
+export type Block =
+  | { id: string; type: 'heading'; text: LocalizedText; style?: BlockStyle }
+  | { id: string; type: 'text'; text: LocalizedText; style?: BlockStyle }
+  | { id: string; type: 'images'; media: BlockMedia[]; columns: 1 | 2 | 3; caption?: LocalizedText; style?: BlockStyle }
+  | {
+      id: string;
+      type: 'textImage';
+      text: LocalizedText;
+      title?: LocalizedText;
+      media?: BlockMedia;
+      /** Which side the image sits on (start = right in Hebrew, left in English). */
+      imageSide: 'start' | 'end';
+      style?: BlockStyle;
+    }
+  | { id: string; type: 'stats'; items: ProjectStat[]; note?: LocalizedText; style?: BlockStyle }
+  | { id: string; type: 'quote'; text: LocalizedText; by?: LocalizedText; style?: BlockStyle }
+  | { id: string; type: 'spacer'; style?: BlockStyle }
+  | { id: string; type: 'divider'; style?: BlockStyle };
+
+export interface PageStyle {
+  bg?: string;
+  color?: string;
+  accent?: string;
 }
 
 export interface ProjectStat {

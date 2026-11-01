@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/auth';
 import { ProjectGalleryLightbox } from '@/components/portfolio/ProjectGalleryLightbox';
 import { ArtworkCarousel } from '@/components/gallery/ArtworkCarousel';
 import { CaseStudyImages } from '@/components/portfolio/CaseStudyImages';
+import { ProjectBlocks } from '@/components/portfolio/ProjectBlocks';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import type { ProjectMeta } from '@/lib/portfolio/types';
@@ -77,6 +78,79 @@ async function CaseStudy({
         )}
       </div>
     ) : null;
+
+  // A page built in Admin → Design: the blocks replace the automatic story layout.
+  const blocks = project.blocks || [];
+  const built = blocks.length > 0;
+  const pageStyle = project.pageStyle || {};
+  const mainStyle = {
+    ...(pageStyle.bg ? { backgroundColor: pageStyle.bg } : {}),
+    ...(pageStyle.color ? { color: pageStyle.color } : {}),
+    ['--page-accent' as string]: pageStyle.accent || '#0030F6',
+  } as React.CSSProperties;
+
+  const titleBlock = (
+    <div className="flex flex-col gap-5">
+      <Link href={`/${locale}/portfolio`} className="self-start text-[15px] font-semibold text-ink-secondary no-underline hover:text-accent py-2">
+        {isRtl ? '→ ' : '← '}{t('backToAll')}
+      </Link>
+      <h1 className={`${displayFont} m-0 mt-1 text-[40px] md:text-[64px] leading-[1.05]`}>
+        {project.title[locale]}
+      </h1>
+      {project.subtitle?.[locale] && (
+        <p className="m-0 text-lg md:text-xl font-semibold opacity-80">{project.subtitle[locale]}</p>
+      )}
+      {(tags.length > 0 || project.award?.[locale]) && (
+        <div className="flex flex-wrap items-center gap-2.5 mt-2">
+          {tags.map((tag) => (
+            <span key={tag} className="text-sm font-semibold border border-border rounded-full px-3.5 py-1.5">{tag}</span>
+          ))}
+          {project.award?.[locale] && (
+            <span className="text-sm font-bold text-accent border-[1.5px] border-accent rounded-full px-3.5 py-1.5">{project.award[locale]}</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  const footer = (
+    <>
+      {project.externalUrl && project.externalUrl.trim() !== '' && (
+        <a
+          href={project.externalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="self-start inline-flex items-center gap-2 px-4 py-2.5 rounded bg-accent text-white text-sm font-medium hover:opacity-85 transition-opacity"
+        >
+          {project.externalLabel?.[locale] || t('viewLive')}
+          <span aria-hidden="true">{isRtl ? '\u2190' : '\u2192'}</span>
+        </a>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-7">
+        <Link href={`/${locale}/portfolio`} className="text-base font-semibold text-ink-secondary no-underline hover:text-accent py-2">
+          {isRtl ? '→ ' : '← '}{t('backToAll')}
+        </Link>
+        {next && (
+          <Link href={`/${locale}/portfolio/${next.slug}`} className="flex flex-col items-end gap-1 no-underline text-ink hover:text-accent">
+            <span className="text-sm text-ink-secondary tracking-wide">{t('nextProject')}</span>
+            <span className="text-2xl md:text-[26px] font-extrabold">
+              {next.title[locale]} {isRtl ? '\u2190' : '\u2192'}
+            </span>
+          </Link>
+        )}
+      </div>
+    </>
+  );
+
+  if (built) {
+    return (
+      <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? 'rtl' : 'ltr'} style={mainStyle}>
+        <div className="max-w-[1060px] mx-auto px-5 md:px-10 pt-8 pb-6">{titleBlock}</div>
+        <ProjectBlocks blocks={blocks} locale={locale} />
+        <div className="max-w-[1060px] mx-auto px-5 md:px-10 pt-10 pb-24 flex flex-col gap-12">{footer}</div>
+      </main>
+    );
+  }
 
   return (
     <main className="bg-canvas text-ink min-h-screen" dir={isRtl ? 'rtl' : 'ltr'}>

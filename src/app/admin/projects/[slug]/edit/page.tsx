@@ -235,6 +235,15 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
           <p className="text-xs text-ink-muted">Unticked projects appear under Illustration with the regular gallery layout. The intro text is the Description field below (leave an empty line between paragraphs). The first image is the hero, the second image appears after the intro.</p>
 
           {formData.caseStudy && (
+            <a
+              href={`/admin/projects/${slug}/design`}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#0030F6] text-white text-sm font-semibold no-underline"
+            >
+              Open the page layout editor (Design) →
+            </a>
+          )}
+
+          {formData.caseStudy && (
             <>
               <div>
                 <h4 className="text-sm font-bold mb-2">Tags (comma separated)</h4>
