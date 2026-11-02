@@ -130,6 +130,9 @@ export interface BlockStyle {
   mediaRatio?: 'auto' | '1/1' | '4/3' | '3/4' | '16/9' | '2/3';
   /** Text + image: how much of the row the image takes. */
   imageShare?: 'third' | 'half' | 'twoThirds';
+  /** Fade the image's outer edges into the page, so a background that is a shade off
+   *  (common in videos) or a thin edge line never shows as a visible frame. */
+  mediaBlend?: boolean;
 
   /** A thin dividing line above / below the block's content (inside the block). */
   lineTop?: boolean;

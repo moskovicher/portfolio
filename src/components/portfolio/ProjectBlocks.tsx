@@ -63,23 +63,60 @@ const RATIO: Record<Exclude<NonNullable<BlockStyle['mediaRatio']>, 'auto'>, numb
  *  whole: the entire image is shown (never cropped); a max height shrinks it and centers it.
  *  crop:  the image fills a fixed shape (ratio) and is cropped to fit.
  */
-function Media({ m, alt, fit, ratio, maxHeight }: { m: BlockMedia; alt: string; fit: 'whole' | 'crop'; ratio?: number; maxHeight?: string }) {
+// A soft fade over the outer 4% of each side. Used to melt an image or video into the
+// page: video compression always shifts a light background by a shade, and browsers
+// can draw a hairline at a video's edge when its size lands between pixels.
+const EDGE_FADE =
+  'linear-gradient(to right, transparent 0, #000 4%, #000 96%, transparent 100%), ' +
+  'linear-gradient(to bottom, transparent 0, #000 4%, #000 96%, transparent 100%)';
+
+function Media({
+  m,
+  alt,
+  fit,
+  ratio,
+  maxHeight,
+  blend,
+}: {
+  m: BlockMedia;
+  alt: string;
+  fit: 'whole' | 'crop';
+  ratio?: number;
+  maxHeight?: string;
+  blend?: boolean;
+}) {
   let cls: string;
   const style: CSSProperties = {};
+  const round = blend ? '' : 'rounded-md';
   if (fit === 'crop') {
-    cls = 'w-full block rounded-md object-cover';
+    cls = `w-full block ${round} object-cover`;
     if (ratio) style.aspectRatio = String(ratio);
     if (maxHeight) style.maxHeight = maxHeight;
   } else if (maxHeight) {
-    cls = 'block rounded-md object-contain mx-auto w-auto max-w-full h-auto';
+    cls = `block ${round} object-contain mx-auto w-auto max-w-full h-auto`;
     style.maxHeight = maxHeight;
   } else {
-    cls = 'w-full h-auto block rounded-md';
+    cls = `w-full h-auto block ${round}`;
+  }
+  if (blend) {
+    style.maskImage = EDGE_FADE;
+    style.WebkitMaskImage = EDGE_FADE;
+    style.maskComposite = 'intersect';
+    (style as Record<string, string>).WebkitMaskComposite = 'source-in';
   }
   return m.resourceType === 'video' ? (
     <LoopVideo src={bigMediaUrl(m)} className={cls} style={style} />
   ) : (
-    <img src={bigMediaUrl(m)} alt={alt} loading="lazy" className={cls} style={style} />
+    <img
+      src={bigMediaUrl(m)}
+      alt={alt}
+      loading="lazy"
+      // Known size lets the browser reserve the space before the image loads (no jump).
+      width={m.width}
+      height={m.height}
+      className={cls}
+      style={style}
+    />
   );
 }
 
@@ -191,7 +228,7 @@ function BlockBody({ block, lang }: { block: Block; lang: Lang }) {
         <figure className="m-0 flex flex-col gap-3">
           <div className={`grid ${grid} gap-4 md:gap-6 items-center`}>
             {media.map((m) => (
-              <Media key={m.publicId + m.url} m={m} alt={caption} fit={fit} ratio={ratio} maxHeight={MEDIA_HEIGHT[s.mediaHeight || 'auto']} />
+              <Media key={m.publicId + m.url} m={m} alt={caption} fit={fit} ratio={ratio} maxHeight={MEDIA_HEIGHT[s.mediaHeight || 'auto']} blend={!!s.mediaBlend} />
             ))}
           </div>
           {caption && <figcaption className={`text-sm opacity-75 leading-snug ${font} ${ALIGN[s.align]}`}>{caption}</figcaption>}
@@ -203,8 +240,8 @@ function BlockBody({ block, lang }: { block: Block; lang: Lang }) {
       const title = tr(block.title, lang);
       const paras = paragraphs(tr(block.text, lang));
       const text = (
-        <div className={`flex flex-col gap-4 ${ALIGN[s.align]}`}>
-          {title && <p className={`m-0 leading-tight ${fontClass('display', lang)} text-3xl md:text-[40px]`}>{title}</p>}
+        <div className={`flex flex-col gap-4 min-w-0 break-words [text-wrap:pretty] ${ALIGN[s.align]}`}>
+          {title && <p className={`m-0 leading-tight ${fontClass('display', lang)} text-3xl md:text-[40px] [text-wrap:balance]`}>{title}</p>}
           {paras.map((p, i) => (
             <p key={i} className={`m-0 leading-[1.75] ${font} ${TEXT_SIZE[s.size]}`}>{p}</p>
           ))}
@@ -221,10 +258,22 @@ function BlockBody({ block, lang }: { block: Block; lang: Lang }) {
               : undefined
           : undefined;
       const caption = tr(block.caption, lang);
+      const maxH = MEDIA_HEIGHT[s.mediaHeight || 'auto'];
+      // When the whole image is kept inside a max height it can end up narrower than its
+      // column. The figure then hugs the image, and the caption takes the image's width
+      // (w-0 + min-w-full stops the caption from widening the figure), so its edge lines up
+      // with the image's edge instead of the column's.
+      const hug = fit === 'whole' && !!maxH;
       const image = m ? (
-        <figure className="m-0 flex flex-col gap-3 min-w-0">
-          <Media m={m} alt={caption || title} fit={fit} ratio={ratio} maxHeight={MEDIA_HEIGHT[s.mediaHeight || 'auto']} />
-          {caption && <figcaption className={`text-sm opacity-75 leading-snug ${fontClass('body', lang)}`}>{caption}</figcaption>}
+        <figure className={`m-0 flex flex-col gap-3 min-w-0 ${hug ? 'w-fit max-w-full mx-auto' : ''}`}>
+          <Media m={m} alt={caption || title} fit={fit} ratio={ratio} maxHeight={maxH} blend={!!s.mediaBlend} />
+          {caption && (
+            <figcaption
+              className={`text-sm opacity-75 leading-snug [text-wrap:pretty] ${hug ? 'w-0 min-w-full' : ''} ${fontClass('body', lang)}`}
+            >
+              {caption}
+            </figcaption>
+          )}
         </figure>
       ) : (
         <div />
@@ -239,7 +288,7 @@ function BlockBody({ block, lang }: { block: Block; lang: Lang }) {
             ? imageFirst ? 'md:grid-cols-[1fr_2fr]' : 'md:grid-cols-[2fr_1fr]'
             : imageFirst ? 'md:grid-cols-[2fr_1fr]' : 'md:grid-cols-[1fr_2fr]';
       return (
-        <div className={`grid grid-cols-1 ${cols} gap-8 md:gap-12 items-center`}>
+        <div className={`grid grid-cols-1 ${cols} gap-6 md:gap-10 items-center`}>
           {imageFirst ? <>{image}{text}</> : <>{text}{image}</>}
         </div>
       );
@@ -412,7 +461,7 @@ export function ProjectBlocks({
             <section key={first.id} className={`${top} ${bottom}`}>
               <div className={BOX_WIDTH[width]}>
                 <div
-                  className="rounded-md p-7 md:p-14 flex flex-col gap-8 md:gap-12"
+                  className="rounded-md px-5 py-6 sm:p-8 md:p-10 lg:p-12 flex flex-col gap-8 md:gap-10"
                   style={{ backgroundColor: first.style?.bg, ...(first.style?.color ? { color: first.style.color } : {}) }}
                 >
                   {group.map((block) => {

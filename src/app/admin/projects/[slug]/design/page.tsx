@@ -779,6 +779,20 @@ function StyleFields({ block, onPatch }: { block: Block; onPatch: (p: Partial<Bl
               />
             </Field>
           )}
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!block.style?.mediaBlend}
+              onChange={(e) => onPatch({ mediaBlend: e.target.checked })}
+              className="w-4 h-4 mt-0.5"
+            />
+            <span>
+              מיזוג הקצוות עם הרקע
+              <span className="block text-[11px] text-neutral-500">
+                הקצוות של התמונה נמסים לתוך העמוד. מעלים פס או מסגרת שנוצרים כשרקע הסרטון לא בדיוק בצבע העמוד.
+              </span>
+            </span>
+          </label>
           <p className="text-[11px] text-neutral-500 m-0">
             "שלמה" מציגה את כל התמונה. "נכנס במסך" מקטין אותה כך שתיכנס במסך אחד בלי גלילה. "חתוכה" ממלאת צורה אחידה, ולכן חלק מהתמונה עלול להיחתך.
           </p>
