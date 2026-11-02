@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImageOrderer } from '@/components/admin/ImageOrderer';
-import { applyGallerySelection } from '@/lib/portfolio/gallery-order';
 
 type LT = { en: string; he: string };
 const emptyLT: LT = { en: '', he: '' };
@@ -50,8 +49,6 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
   const [error, setError] = useState('');
   const [cloudinaryImages, setCloudinaryImages] = useState<Array<{ url: string; publicId: string; resourceType?: string; caption?: string }>>([]);
   const [galleryError, setGalleryError] = useState('');
-  const [captionDrafts, setCaptionDrafts] = useState<Record<string, string>>({});
-  const [captionSaved, setCaptionSaved] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     params.then((p) => {
@@ -111,63 +108,10 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
   };
 
   // ---------- case study helpers ----------
-  const setLT = (key: 'tags' | 'statsNote' | 'closingTitle' | 'closingText', lang: 'en' | 'he', value: string) => {
+  const setLT = (key: 'tags', lang: 'en' | 'he', value: string) => {
     if (!formData) return;
     setFormData({ ...formData, [key]: { ...(formData[key] || emptyLT), [lang]: value } });
   };
-
-  const statsRows = (() => {
-    const rows = [...(formData?.stats || [])];
-    while (rows.length < 3) rows.push({ value: '', label: { ...emptyLT } });
-    return rows.slice(0, 3);
-  })();
-
-  const setStat = (idx: number, field: 'value' | 'en' | 'he', value: string) => {
-    if (!formData) return;
-    const rows = statsRows.map((r) => ({ value: r.value, label: { ...r.label } }));
-    if (field === 'value') rows[idx].value = value;
-    else rows[idx].label[field] = value;
-    setFormData({ ...formData, stats: rows });
-  };
-
-  const toSet = (csv?: string) => new Set((csv || '').split(',').map((x) => x.trim()).filter(Boolean));
-  const halfSet = toSet(formData?.halfImages);
-  const thirdSet = toSet(formData?.thirdImages);
-  const sizeOf = (publicId: string) => (thirdSet.has(publicId) ? 'third' : halfSet.has(publicId) ? 'half' : 'full');
-  const setSize = (publicId: string, size: string) => {
-    if (!formData) return;
-    const h = new Set(halfSet);
-    const t = new Set(thirdSet);
-    h.delete(publicId);
-    t.delete(publicId);
-    if (size === 'half') h.add(publicId);
-    if (size === 'third') t.add(publicId);
-    setFormData({ ...formData, halfImages: Array.from(h).join(','), thirdImages: Array.from(t).join(',') });
-  };
-
-  const saveCaption = async (publicId: string) => {
-    const caption = captionDrafts[publicId] ?? '';
-    try {
-      const res = await fetch('/api/gallery/caption', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          publicId,
-          caption,
-          resourceType: cloudinaryImages.find((m) => m.publicId === publicId)?.resourceType,
-        }),
-      });
-      if (!res.ok) throw new Error();
-      setCloudinaryImages((imgs) => imgs.map((m) => (m.publicId === publicId ? { ...m, caption } : m)));
-      setCaptionSaved((s) => ({ ...s, [publicId]: true }));
-    } catch {
-      alert('Failed to save caption');
-    }
-  };
-
-  const orderedForLayout = formData
-    ? applyGallerySelection(cloudinaryImages, formData.imageOrder, formData.selectedImages)
-    : [];
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,7 +122,9 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
       const res = await fetch(`/api/admin/projects/${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        // The page layout (blocks) is saved by the layout editor. Leaving it out here
+        // means this form can never overwrite a newer layout with an old copy.
+        body: JSON.stringify({ ...formData, blocks: undefined, pageStyle: undefined }),
       });
       if (!res.ok) throw new Error('Failed to update project');
       router.push('/admin');
@@ -230,86 +176,29 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
         <div className="border-2 border-blue-400 bg-blue-50 p-4 rounded space-y-4">
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={!!formData.caseStudy} onChange={(e) => setFormData({ ...formData, caseStudy: e.target.checked })} className="w-5 h-5" />
-            <span className="font-medium">Case study (shows on the Work page, story layout)</span>
+            <span className="font-medium">Case study (shows on the Work page)</span>
           </label>
-          <p className="text-xs text-ink-muted">Unticked projects appear under Illustration with the regular gallery layout. The intro text is the Description field below (leave an empty line between paragraphs). The first image is the hero, the second image appears after the intro.</p>
-
-          {formData.caseStudy && (
-            <a
-              href={`/admin/projects/${slug}/design`}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#0030F6] text-white text-sm font-semibold no-underline"
-            >
-              Open the page layout editor (Design) →
-            </a>
-          )}
+          <p className="text-xs text-ink-muted">
+            {formData.caseStudy
+              ? 'The page is built in the layout editor from blocks: text, images, numbers, links. Gallery order and carousel settings below do not apply.'
+              : 'Unticked projects appear under Illustration as a gallery (grid or carousel). Set the image order below.'}
+          </p>
 
           {formData.caseStudy && (
             <>
+              <a
+                href={`/admin/projects/${slug}/design`}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded bg-[#0030F6] text-white text-sm font-semibold no-underline"
+              >
+                Open the page layout editor (Design) →
+              </a>
+              <p className="text-xs text-ink-muted">Save this form first if you changed anything here, then open the editor.</p>
+
               <div>
-                <h4 className="text-sm font-bold mb-2">Tags (comma separated)</h4>
+                <h4 className="text-sm font-bold mb-2">Tags under the title (comma separated)</h4>
                 <input type="text" placeholder="Branding, Pin design, Typography" value={formData.tags?.en || ''} onChange={(e) => setLT('tags', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" />
                 <input type="text" dir="rtl" placeholder="מיתוג, עיצוב סיכה, טיפוגרפיה" value={formData.tags?.he || ''} onChange={(e) => setLT('tags', 'he', e.target.value)} className="w-full p-2 border rounded bg-white" />
               </div>
-
-              <div>
-                <h4 className="text-sm font-bold mb-2">Big numbers (up to 3, leave empty to hide)</h4>
-                {statsRows.map((row, idx) => (
-                  <div key={idx} className="grid grid-cols-3 gap-2 mb-2">
-                    <input type="text" placeholder="173" value={row.value} onChange={(e) => setStat(idx, 'value', e.target.value)} className="p-2 border rounded bg-white" />
-                    <input type="text" placeholder="Label (English)" value={row.label.en} onChange={(e) => setStat(idx, 'en', e.target.value)} className="p-2 border rounded bg-white" />
-                    <input type="text" dir="rtl" placeholder="תווית (עברית)" value={row.label.he} onChange={(e) => setStat(idx, 'he', e.target.value)} className="p-2 border rounded bg-white" />
-                  </div>
-                ))}
-                <textarea placeholder="Sentence under the numbers (English)" value={formData.statsNote?.en || ''} onChange={(e) => setLT('statsNote', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" rows={2} />
-                <textarea dir="rtl" placeholder="משפט מתחת למספרים (עברית)" value={formData.statsNote?.he || ''} onChange={(e) => setLT('statsNote', 'he', e.target.value)} className="w-full p-2 border rounded bg-white" rows={2} />
-              </div>
-
-              <div>
-                <h4 className="text-sm font-bold mb-2">Closing note (optional, end of page)</h4>
-                <input type="text" placeholder="Title (English)" value={formData.closingTitle?.en || ''} onChange={(e) => setLT('closingTitle', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" />
-                <input type="text" dir="rtl" placeholder="כותרת (עברית)" value={formData.closingTitle?.he || ''} onChange={(e) => setLT('closingTitle', 'he', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" />
-                <textarea placeholder="Text (English)" value={formData.closingText?.en || ''} onChange={(e) => setLT('closingText', 'en', e.target.value)} className="w-full p-2 border rounded mb-2 bg-white" rows={4} />
-                <textarea dir="rtl" placeholder="טקסט (עברית)" value={formData.closingText?.he || ''} onChange={(e) => setLT('closingText', 'he', e.target.value)} className="w-full p-2 border rounded bg-white" rows={4} />
-              </div>
-
-              {orderedForLayout.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-bold mb-1">Image layout & captions</h4>
-                  <p className="text-xs text-ink-muted mb-3">Order is set in the gallery section below. Size: Full = one per row, Half = two side by side, Third = three in a row (good for process frames). If image 2 is Half or Third, it sits beside the intro text. Captions save straight to Cloudinary.</p>
-                  <div className="space-y-2">
-                    {orderedForLayout.map((img, idx) => (
-                      <div key={img.publicId} className="flex items-center gap-3 bg-white border rounded p-2">
-                        <span className="text-xs text-ink-muted w-5 text-center">{idx + 1}</span>
-                        {img.resourceType === 'video' ? (
-                          <video src={img.url} muted playsInline className="w-16 h-12 object-cover rounded" />
-                        ) : (
-                          <img src={img.url} alt="" className="w-16 h-12 object-cover rounded" />
-                        )}
-                        <select
-                          aria-label="Image size"
-                          value={sizeOf(img.publicId)}
-                          onChange={(e) => setSize(img.publicId, e.target.value)}
-                          className="text-xs p-1.5 border rounded bg-white"
-                        >
-                          <option value="full">Full</option>
-                          <option value="half">Half</option>
-                          <option value="third">Third</option>
-                        </select>
-                        <input
-                          type="text"
-                          placeholder="Caption (optional)"
-                          value={captionDrafts[img.publicId] ?? img.caption ?? ''}
-                          onChange={(e) => { setCaptionDrafts((d) => ({ ...d, [img.publicId]: e.target.value })); setCaptionSaved((s) => ({ ...s, [img.publicId]: false })); }}
-                          className="flex-1 min-w-0 p-1.5 border rounded text-sm"
-                        />
-                        <button type="button" onClick={() => saveCaption(img.publicId)} className="px-2.5 py-1.5 text-xs bg-gray-800 text-white rounded">
-                          {captionSaved[img.publicId] ? 'Saved' : 'Save'}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </>
           )}
         </div>
@@ -323,13 +212,17 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
 
         {/* GALLERY: tag + picker + reorder */}
         <div className="border border-border p-4 rounded">
-          <h3 className="font-bold mb-3">Gallery Images & Video</h3>
+          <h3 className="font-bold mb-3">{formData.caseStudy ? 'Images & Video' : 'Gallery Images & Video'}</h3>
           <label className="block text-sm font-medium mb-1">Cloudinary Tag</label>
           <input type="text" placeholder="e.g. nili" value={formData.cloudinaryTag || ''} onChange={(e) => setFormData({ ...formData, cloudinaryTag: e.target.value })} className="w-full p-2 border rounded mb-2" />
-          <p className="text-xs text-ink-muted mb-3">Tag images AND videos in Cloudinary with this name — both appear in the gallery automatically.</p>
+          <p className="text-xs text-ink-muted mb-3">
+            {formData.caseStudy
+              ? 'Tag images and videos in Cloudinary with this name. They appear in the layout editor, ready to place on the page.'
+              : 'Tag images AND videos in Cloudinary with this name — both appear in the gallery automatically.'}
+          </p>
 
-          {/* DISPLAY MODE: grid (default) or carousel */}
-          <label className="flex items-center gap-3 mb-3 p-2 rounded bg-surface cursor-pointer">
+          {/* DISPLAY MODE: grid (default) or carousel — galleries only */}
+          {!formData.caseStudy && (<label className="flex items-center gap-3 mb-3 p-2 rounded bg-surface cursor-pointer">
             <input
               type="checkbox"
               checked={formData.displayMode === 'carousel'}
@@ -340,7 +233,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
               <span className="font-medium">Display as carousel</span>
               <span className="text-ink-muted"> — one image at a time with thumbnails (default is a grid gallery)</span>
             </span>
-          </label>
+          </label>)}
 
           {/* Main/preview image picker */}
           {cloudinaryImages.length > 0 && (
@@ -360,8 +253,8 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
             </div>
           )}
 
-          {/* Reorder + choose which images to show */}
-          {formData.cloudinaryTag && (
+          {/* Reorder + choose which images to show — galleries only; block pages place each image themselves */}
+          {formData.cloudinaryTag && !formData.caseStudy && (
             <div className="border border-border rounded p-3 bg-white">
               <h4 className="text-sm font-medium mb-3">Reorder & Choose Gallery Images</h4>
               <ImageOrderer
@@ -391,7 +284,11 @@ export default function EditProjectPage({ params }: { params: Promise<{ slug: st
         {/* DESCRIPTION */}
         <div>
           <h3 className="font-bold mb-1">Description</h3>
-          <p className="text-xs text-ink-muted mb-2">For case studies this is the intro text. Leave an empty line between paragraphs.</p>
+          <p className="text-xs text-ink-muted mb-2">
+            {formData.caseStudy
+              ? 'Short summary of the project, used for search engines and link previews. The page text itself is written in the layout editor.'
+              : 'Leave an empty line between paragraphs.'}
+          </p>
           <textarea placeholder="Description (English)" value={formData.description.en} onChange={(e) => setFormData({ ...formData, description: { ...formData.description, en: e.target.value } })} className="w-full p-2 border rounded mb-2" rows={6} />
           <textarea dir="rtl" placeholder="Description (Hebrew)" value={formData.description.he} onChange={(e) => setFormData({ ...formData, description: { ...formData.description, he: e.target.value } })} className="w-full p-2 border rounded" rows={6} />
         </div>

@@ -130,6 +130,10 @@ export interface BlockStyle {
   mediaRatio?: 'auto' | '1/1' | '4/3' | '3/4' | '16/9' | '2/3';
   /** Text + image: how much of the row the image takes. */
   imageShare?: 'third' | 'half' | 'twoThirds';
+
+  /** A thin dividing line above / below the block's content (inside the block). */
+  lineTop?: boolean;
+  lineBottom?: boolean;
 }
 
 export type Block =
@@ -144,6 +148,17 @@ export type Block =
       media?: BlockMedia;
       /** Which side the image sits on (start = right in Hebrew, left in English). */
       imageSide: 'start' | 'end';
+      /** Small text under the image. */
+      caption?: LocalizedText;
+      style?: BlockStyle;
+    }
+  | {
+      id: string;
+      type: 'button';
+      text: LocalizedText;
+      url: string;
+      /** solid = filled with the page's accent color; outline = a frame in the text color. */
+      variant: 'solid' | 'outline';
       style?: BlockStyle;
     }
   | { id: string; type: 'stats'; items: ProjectStat[]; note?: LocalizedText; style?: BlockStyle }

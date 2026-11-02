@@ -30,6 +30,7 @@ const TYPE_LABEL: Record<Block['type'], string> = {
   textImage: 'טקסט + תמונה',
   stats: 'מספרים',
   quote: 'ציטוט',
+  button: 'כפתור קישור',
   spacer: 'רווח',
   divider: 'קו מפריד',
 };
@@ -50,6 +51,8 @@ function makeBlock(type: Block['type']): Block {
       return { id, type, items: [{ value: '', label: emptyLT() }, { value: '', label: emptyLT() }, { value: '', label: emptyLT() }], note: emptyLT() };
     case 'quote':
       return { id, type, text: emptyLT(), by: emptyLT() };
+    case 'button':
+      return { id, type, text: { he: 'לצפייה באתר', en: 'View site' }, url: '', variant: 'solid' };
     case 'spacer':
     case 'divider':
       return { id, type };
@@ -360,7 +363,9 @@ export default function DesignEditorPage({ params }: { params: Promise<{ slug: s
       const res = await fetch(`/api/admin/projects/${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...project, blocks, pageStyle }),
+        // Only the layout (plus the two fields the API requires), so saving here never
+        // overwrites changes made meanwhile in the project form.
+        body: JSON.stringify({ title: project.title, description: project.description, blocks, pageStyle }),
       });
       if (res.status === 401) {
         setMessage({ kind: 'error', text: 'החיבור לפאנל פג. התחברי שוב בלשונית אחרת ולחצי שוב על שמירה.' });
@@ -561,6 +566,8 @@ function summary(b: Block): string {
       return `${b.media.length} · ${b.columns} בשורה`;
     case 'stats':
       return b.items.map((i) => i.value).filter(Boolean).join(' · ');
+    case 'button':
+      return cut(b.text.he || b.text.en);
     default:
       return '';
   }
@@ -639,6 +646,9 @@ function ContentFields({ block, items, onPatch }: { block: Block; items: Item[];
               onChange={(imageSide) => onPatch({ imageSide })}
             />
           </Field>
+          <Field label="תיאור קטן מתחת לתמונה (לא חובה)">
+            <LTInput value={block.caption} onChange={(caption) => onPatch({ caption })} />
+          </Field>
           <Field label="תמונה">
             <MediaPicker
               single
@@ -668,6 +678,33 @@ function ContentFields({ block, items, onPatch }: { block: Block; items: Item[];
         </>
       );
     }
+    case 'button':
+      return (
+        <>
+          <Field label="הטקסט על הכפתור"><LTInput value={block.text} onChange={(text) => onPatch({ text })} /></Field>
+          <Field label="כתובת הקישור">
+            <input
+              dir="ltr"
+              type="url"
+              className="w-full p-2 border rounded text-sm bg-white"
+              placeholder="https://"
+              value={block.url}
+              onChange={(e) => onPatch({ url: e.target.value })}
+            />
+          </Field>
+          {block.url && !/^https?:\/\//i.test(block.url.trim()) && (
+            <p className="text-[11px] text-amber-700 m-0">הכתובת צריכה להתחיל ב-https://</p>
+          )}
+          <Field label="סגנון">
+            <Seg
+              value={block.variant}
+              options={[{ value: 'solid', label: 'מלא (בצבע ההדגשה של העמוד)' }, { value: 'outline', label: 'מסגרת' }]}
+              onChange={(variant) => onPatch({ variant })}
+            />
+          </Field>
+          <p className="text-[11px] text-neutral-500 m-0">הקישור נפתח בלשונית חדשה. כשיש בעמוד כפתור קישור, הכפתור הישן בסוף העמוד לא מוצג.</p>
+        </>
+      );
     default:
       return null;
   }
@@ -684,9 +721,9 @@ function StyleFields({ block, onPatch }: { block: Block; onPatch: (p: Partial<Bl
           <Field label="פונט">
             <Seg value={s.font} options={[{ value: 'display', label: 'כותרות (טושיה)' }, { value: 'body', label: 'גוף' }]} onChange={(font) => onPatch({ font })} />
           </Field>
-          <Field label="גודל">
+          {block.type !== 'button' && <Field label="גודל">
             <Seg value={s.size} options={[{ value: 's', label: 'S' }, { value: 'm', label: 'M' }, { value: 'l', label: 'L' }, { value: 'xl', label: 'XL' }]} onChange={(size) => onPatch({ size })} />
-          </Field>
+          </Field>}
         </>
       )}
       {block.type !== 'spacer' && block.type !== 'divider' && (
@@ -746,6 +783,20 @@ function StyleFields({ block, onPatch }: { block: Block; onPatch: (p: Partial<Bl
             "שלמה" מציגה את כל התמונה. "נכנס במסך" מקטין אותה כך שתיכנס במסך אחד בלי גלילה. "חתוכה" ממלאת צורה אחידה, ולכן חלק מהתמונה עלול להיחתך.
           </p>
         </div>
+      )}
+      {block.type !== 'spacer' && block.type !== 'divider' && (
+        <Field label="קווים מפרידים בתוך הבלוק">
+          <div className="flex flex-wrap gap-4 text-sm">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={!!block.style?.lineTop} onChange={(e) => onPatch({ lineTop: e.target.checked })} className="w-4 h-4" />
+              קו למעלה
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={!!block.style?.lineBottom} onChange={(e) => onPatch({ lineBottom: e.target.checked })} className="w-4 h-4" />
+              קו למטה
+            </label>
+          </div>
+        </Field>
       )}
       <Field label="רוחב">
         <Seg value={s.width} options={[{ value: 'narrow', label: 'צר (קריאה)' }, { value: 'wide', label: 'רחב' }, { value: 'full', label: 'מקצה לקצה' }]} onChange={(width) => onPatch({ width })} />

@@ -140,6 +140,8 @@ export function defaultStyle(type: Block['type']): Required<Pick<BlockStyle, 'fo
       return { font: 'body', size: 'm', align: 'start', width: 'wide', space: 'm' };
     case 'divider':
       return { font: 'body', size: 'm', align: 'start', width: 'wide', space: 's' };
+    case 'button':
+      return { font: 'body', size: 'm', align: 'start', width: 'wide', space: 's' };
     default:
       return { font: 'body', size: 'm', align: 'start', width: 'narrow', space: 's' };
   }
@@ -218,8 +220,12 @@ function BlockBody({ block, lang }: { block: Block; lang: Lang }) {
               ? m.width / m.height
               : undefined
           : undefined;
+      const caption = tr(block.caption, lang);
       const image = m ? (
-        <Media m={m} alt={title} fit={fit} ratio={ratio} maxHeight={MEDIA_HEIGHT[s.mediaHeight || 'auto']} />
+        <figure className="m-0 flex flex-col gap-3 min-w-0">
+          <Media m={m} alt={caption || title} fit={fit} ratio={ratio} maxHeight={MEDIA_HEIGHT[s.mediaHeight || 'auto']} />
+          {caption && <figcaption className={`text-sm opacity-75 leading-snug ${fontClass('body', lang)}`}>{caption}</figcaption>}
+        </figure>
       ) : (
         <div />
       );
@@ -281,7 +287,46 @@ function BlockBody({ block, lang }: { block: Block; lang: Lang }) {
 
     case 'divider':
       return <hr className="m-0 border-0 border-t border-current opacity-30" />;
+
+    case 'button': {
+      const text = tr(block.text, lang);
+      const url = (block.url || '').trim();
+      if (!text || !url) return null;
+      const arrow = lang === 'he' ? '\u2190' : '\u2192';
+      const justify = s.align === 'center' ? 'justify-center' : s.align === 'end' ? 'justify-end' : 'justify-start';
+      const solid = block.variant !== 'outline';
+      return (
+        <div className={`flex ${justify}`}>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`inline-flex items-center gap-2 px-5 py-3 rounded text-base font-semibold no-underline transition-opacity hover:opacity-85 ${font} ${
+              solid ? 'text-white' : 'border-[1.5px]'
+            }`}
+            style={solid ? { backgroundColor: 'var(--page-accent)' } : { borderColor: 'currentColor', color: 'inherit' }}
+          >
+            {text}
+            <span aria-hidden="true">{arrow}</span>
+          </a>
+        </div>
+      );
+    }
   }
+}
+
+// Optional thin lines above / below a block's content (set per block in the editor).
+const LINE_COLOR = 'color-mix(in srgb, currentColor 35%, transparent)';
+function WithLines({ style, children }: { style?: BlockStyle; children: ReactNode }) {
+  if (!style?.lineTop && !style?.lineBottom) return <>{children}</>;
+  return (
+    <div
+      className={`${style.lineTop ? 'border-t pt-6 md:pt-8' : ''} ${style.lineBottom ? 'border-b pb-6 md:pb-8' : ''}`}
+      style={{ borderColor: LINE_COLOR }}
+    >
+      {children}
+    </div>
+  );
 }
 
 // Inside a colored box the content already has its own padding, so the
@@ -344,7 +389,10 @@ export function ProjectBlocks({
       : { className: base };
 
   // Called as a function (it has no hooks) so an empty block comes back as null.
-  const body = (block: Block) => BlockBody({ block, lang });
+  const body = (block: Block) => {
+    const inner = BlockBody({ block, lang });
+    return inner === null ? null : <WithLines style={block.style}>{inner}</WithLines>;
+  };
 
   return (
     <div className="flex flex-col">

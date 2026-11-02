@@ -113,9 +113,12 @@ async function CaseStudy({
     </div>
   );
 
+  // A page built from blocks places its own link buttons; then the old one is not shown.
+  const hasButtonBlock = built && blocks.some((b) => b.type === 'button');
+
   const footer = (
     <>
-      {project.externalUrl && project.externalUrl.trim() !== '' && (
+      {!hasButtonBlock && project.externalUrl && project.externalUrl.trim() !== '' && (
         <a
           href={project.externalUrl}
           target="_blank"
